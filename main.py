@@ -4,6 +4,9 @@ import telebot
 
 bot = telebot.TeleBot("990303016:AAEQfd5PnZsjgitwo0HvcLVLMQty47JI_WU")
 person = User(0, "user_name", 0, 0)
+setting_request = False
+setting_payment = False
+setting_name = False
 
 
 @bot.message_handler(commands=["start"])
@@ -20,56 +23,83 @@ def start_message(message):
 
 @bot.message_handler(commands=["request"])
 def create_request(message):
+    global setting_request
+    setting_request = True
     bot.send_message(message.chat.id, "Какую сумму вы хотите взять в долг?")
-    # user.debt += new_debt(message)
-    bot.send_message(message.chat.id, "Сумма вашего долга состовляет: " + str(person.debt) + "k")
 
 
-def new_debt(message):
-    if message.text.isdigit():
-        if message.text.endswith("000"):
-            return float(message.text) / 1000
-        return float(message.text)
-    else:
-        bot.send_message(message.chat.id, "Вы ввели неверное значение")
-        return new_debt(message)
+def type_request(message):
+    global setting_request
+    setting_request = False
+    person.debt += amount_converter(message.text)
+    bot.send_message(message.chat.id, "Новая сумма вашего долга состовляет: " + str(person.debt) + "k")
 
 
 @bot.message_handler(commands=["payment"])
 def payment_notification(message):
+    global setting_payment
+    setting_payment = True
     bot.send_message(message.chat.id, "Какую сумму из вашего долга " + str(person.debt) + "k вы оплатили?")
-    person.wait += 0
+
+
+def type_payment(message):
+    global setting_payment
+    setting_payment = False
+    person.wait += amount_converter(message.text)
+    bot.send_message(message.chat.id, "Ваше уведомление о внесении " + message.text + "k рассматривается.")
+
+
+def amount_converter(amount):
+    if amount.endswith("000"):
+        return float(amount) / 1000
+    return float(amount)
 
 
 @bot.message_handler(commands=["debt"])
 def get_current_debt(message):
-    bot.send_message(message.chat.id, "Ваш долг состовляет: " + str(person.debt) + "k")
-    bot.send_message(message.chat.id, "Из этой суммы ожидает подтверждения: " + str(person.wait) + "k")
+    wait = ""
+    if person.wait > 0.0:
+        wait = " (-" + str(person.wait) + "k на рассмотрении)"
+    bot.send_message(message.chat.id, "Ваш долг состовляет: " + str(person.debt) + "k" + wait)
 
 
 @bot.message_handler(commands=["set_name"])
 def set_name(message):
+    global setting_name
+    setting_name = True
     bot.send_message(message.chat.id, "Как вас зовут?")
-    person.name = ""
-    # bot.send_message(message.chat.id, "Ваше имя изменено на '" + murat.name + "'. Что вы хотите сделать?")
+
+
+def type_name(message):
+    global setting_name
+    setting_name = False
+    person.name = message.text
+    bot.send_message(message.chat.id, "Ваше имя изменено на '" + person.name + "'. Что вы хотите сделать?")
 
 
 @bot.message_handler(content_types=["text"])
 def send_text(message):
-    if message.text.lower() == "оставить заявку на долг":
-        create_request(message)
-    elif message.text.lower() == "уведомить об оплате долга":
-        payment_notification(message)
-    elif message.text.lower() == "посмотреть ваш долг":
-        get_current_debt(message)
-    elif message.text.lower() == "изменить имя":
-        set_name(message)
+    global setting_request, setting_payment, setting_name
+    if setting_request:
+        type_request(message)
+    elif setting_payment:
+        type_payment(message)
+    elif setting_name:
+        type_name(message)
+    else:
+        if message.text.lower() == "оставить заявку на долг":
+            create_request(message)
+        elif message.text.lower() == "уведомить об оплате долга":
+            payment_notification(message)
+        elif message.text.lower() == "посмотреть сумму долга":
+            get_current_debt(message)
+        elif message.text.lower() == "изменить ваше имя":
+            set_name(message)
 
 
 bank_keyboard = telebot.types.ReplyKeyboardMarkup()
-bank_keyboard.row_width = 2
 bank_keyboard.row("оставить заявку на долг", "уведомить об оплате долга")
-bank_keyboard.row("посмотреть ваш долг", "изменить имя")
+bank_keyboard.row("посмотреть сумму долга", "изменить ваше имя")
 
 
 bot.polling()

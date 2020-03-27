@@ -2,6 +2,7 @@ class User:
     def __init__(self, id, name, debt, wait):
         self.id = id
         self.name = name
+        self.username = name
         self.debt = debt
         self.wait = wait
 

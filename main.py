@@ -18,7 +18,7 @@ def start_message(message):
             break
     else:
         person = User(message.from_user.id, message.from_user.first_name, 0, 0)
-    bot.send_message(message.chat.id, "Приветствуем вас в НурБанке, " + person.name + "!", reply_markup=bank_keyboard)
+    bot.send_message(message.chat.id, "Приветствуем вас в НурБанке, " + person.username + "!", reply_markup=bank_keyboard)
 
 
 @bot.message_handler(commands=["request"])
@@ -73,8 +73,8 @@ def set_name(message):
 def type_name(message):
     global setting_name
     setting_name = False
-    person.name = message.text
-    bot.send_message(message.chat.id, "Ваше имя изменено на '" + person.name + "'. Что вы хотите сделать?")
+    person.username = message.text
+    bot.send_message(message.chat.id, "Ваше имя изменено на '" + person.username + "'. Что вы хотите сделать?")
 
 
 @bot.message_handler(content_types=["text"])
@@ -95,6 +95,8 @@ def send_text(message):
             get_current_debt(message)
         elif message.text.lower() == "изменить ваше имя":
             set_name(message)
+        else:
+            bot.send_message(message.chat.id, "Вы неправильно ввели команду")
 
 
 bank_keyboard = telebot.types.ReplyKeyboardMarkup()

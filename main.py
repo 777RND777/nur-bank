@@ -22,7 +22,7 @@ def start_message(message):
 def create_request(message):
     bot.send_message(message.chat.id, "Какую сумму вы хотите взять в долг?")
     # user.debt += new_debt(message)
-    bot.send_message(message.chat.id, "Сумма вашего долга состовляет: " + str(person.debt))
+    bot.send_message(message.chat.id, "Сумма вашего долга состовляет: " + str(person.debt) + "k")
 
 
 def new_debt(message):

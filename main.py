@@ -67,7 +67,7 @@ def get_current_debt(message):
 def set_name(message):
     global setting_name
     setting_name = True
-    bot.send_message(message.chat.id, "Как вас зовут?")
+    bot.send_message(message.chat.id, "Как вы хотите, чтобы к вам обращались?")
 
 
 def type_name(message):

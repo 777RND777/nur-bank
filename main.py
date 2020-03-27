@@ -18,10 +18,11 @@ def start_message(message):
             break
     else:
         person = User(message.from_user.id, message.from_user.first_name, 0, 0)
-    bot.send_message(message.chat.id, "Приветствуем вас в НурБанке, " + person.username + "!", reply_markup=bank_keyboard)
+    bot.send_message(message.chat.id, "Приветствуем вас в НурБанке, " + person.username + "!",
+                     reply_markup=bank_keyboard)
 
 
-@bot.message_handler(commands=["request"])
+@bot.message_handler(func=lambda message: message.text.lower() == "оставить заявку на долг")
 def create_request(message):
     global setting_request
     setting_request = True
@@ -32,10 +33,10 @@ def type_request(message):
     global setting_request
     setting_request = False
     person.debt += amount_converter(message.text)
-    bot.send_message(message.chat.id, "Новая сумма вашего долга состовляет: " + str(person.debt) + "k")
+    bot.send_message(message.chat.id, "Новая сумма вашего долга состовляет: " + str(person.debt) + "k.")
 
 
-@bot.message_handler(commands=["payment"])
+@bot.message_handler(func=lambda message: message.text.lower() == "уведомить об оплате долга")
 def payment_notification(message):
     global setting_payment
     setting_payment = True
@@ -55,15 +56,15 @@ def amount_converter(amount):
     return float(amount)
 
 
-@bot.message_handler(commands=["debt"])
+@bot.message_handler(func=lambda message: message.text.lower() == "посмотреть сумму долга")
 def get_current_debt(message):
     wait = ""
     if person.wait > 0.0:
         wait = " (-" + str(person.wait) + "k на рассмотрении)"
-    bot.send_message(message.chat.id, "Ваш долг состовляет: " + str(person.debt) + "k" + wait)
+    bot.send_message(message.chat.id, "Ваш долг состовляет: " + str(person.debt) + "k" + wait + ".")
 
 
-@bot.message_handler(commands=["set_name"])
+@bot.message_handler(func=lambda message: message.text.lower() == "изменить ваше имя")
 def set_name(message):
     global setting_name
     setting_name = True
@@ -74,7 +75,7 @@ def type_name(message):
     global setting_name
     setting_name = False
     person.username = message.text
-    bot.send_message(message.chat.id, "Ваше имя изменено на '" + person.username + "'. Что вы хотите сделать?")
+    bot.send_message(message.chat.id, "Ваше имя изменено на '" + person.username + "'.")
 
 
 @bot.message_handler(content_types=["text"])
@@ -87,16 +88,7 @@ def send_text(message):
     elif setting_name:
         type_name(message)
     else:
-        if message.text.lower() == "оставить заявку на долг":
-            create_request(message)
-        elif message.text.lower() == "уведомить об оплате долга":
-            payment_notification(message)
-        elif message.text.lower() == "посмотреть сумму долга":
-            get_current_debt(message)
-        elif message.text.lower() == "изменить ваше имя":
-            set_name(message)
-        else:
-            bot.send_message(message.chat.id, "Вы неправильно ввели команду")
+        bot.send_message(message.chat.id, "Вы неправильно ввели команду.")
 
 
 bank_keyboard = telebot.types.ReplyKeyboardMarkup()

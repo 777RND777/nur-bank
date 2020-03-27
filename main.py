@@ -1,5 +1,4 @@
 from db import *
-from datetime import datetime
 import telebot
 
 
@@ -32,8 +31,7 @@ def payment_notification(message):
 
 @bot.message_handler(commands=["debt"])
 def get_current_debt(message):
-    current_time = datetime.now().strftime("%H:%M:%S   %d/%m/%Y")
-    bot.send_message(message.chat.id, "Ваш долг на " + current_time + " состовляет: " + str(user.debt) + "k")
+    bot.send_message(message.chat.id, "Ваш долг состовляет: " + str(user.debt) + "k")
     bot.send_message(message.chat.id, "Из этой суммы ожидает подтверждения: " + str(user.wait) + "k")
 
 

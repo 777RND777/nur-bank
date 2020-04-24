@@ -24,7 +24,7 @@ class User:
 
     def make_payment(self, text):
         self.approving += amount_converter(text)
-        sheet["G" + str(self.number+1)].value = self.approving
+        sheet["H" + str(self.number+1)].value = self.approving
         wb.save('./DB.xlsx')
 
 

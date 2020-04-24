@@ -48,7 +48,8 @@ def make_loan_request(message):
 def type_request(message):
     make.REQUEST = False
     person.make_request(message.text)
-    bot.send_message(message.chat.id, "Новая сумма вашего долга состовляет: " + str(person.debt) + "k.")
+    bot.send_message(message.chat.id, "Новая сумма вашего долга состовляет: " + str(person.debt + person.requested) +
+                     "k.\n")
 
 
 @bot.message_handler(func=lambda message: message.text.lower() == "уведомить об оплате долга")
@@ -65,10 +66,10 @@ def type_payment(message):
 
 @bot.message_handler(func=lambda message: message.text.lower() == "посмотреть сумму долга")
 def get_current_debt(message):
-    requested = ""
-    if person.requested > 0.0:
-        requested = " (-" + str(person.requested) + "k на рассмотрении)"
-    bot.send_message(message.chat.id, "Ваш долг состовляет: " + str(person.debt) + "k" + requested + ".")
+    approving = ""
+    if person.approving > 0.0:
+        approving = " (-" + str(person.approving) + "k на рассмотрении)"
+    bot.send_message(message.chat.id, "Ваш долг состовляет: " + str(person.debt) + "k" + approving + ".")
 
 
 @bot.message_handler(content_types=["text"])

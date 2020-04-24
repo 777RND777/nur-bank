@@ -2,15 +2,15 @@ from openpyxl import load_workbook
 
 
 class User:
-    def __init__(self, number, id_number, first_name, last_name, username, debt, check, approve):
+    def __init__(self, number, id_number, first_name, last_name, username, debt, requested, approving):
         self.number = number
         self.id = id_number
         self.first_name = first_name
         self.last_name = last_name
         self.username = username
         self.debt = debt
-        self.check = check
-        self.approve = approve
+        self.requested = requested
+        self.approving = approving
 
     def set_username(self, text):
         self.username = text
@@ -18,13 +18,13 @@ class User:
         wb.save('./DB.xlsx')
 
     def make_request(self, text):
-        self.check += amount_converter(text)
-        sheet["G" + str(self.number + 1)].value = self.check
+        self.requested += amount_converter(text)
+        sheet["G" + str(self.number + 1)].value = self.requested
         wb.save('./DB.xlsx')
 
     def make_payment(self, text):
-        self.approve += amount_converter(text)
-        sheet["G" + str(self.number+1)].value = self.approve
+        self.approving += amount_converter(text)
+        sheet["G" + str(self.number+1)].value = self.approving
         wb.save('./DB.xlsx')
 
 

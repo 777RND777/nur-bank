@@ -27,6 +27,18 @@ def start_message(message):
                      reply_markup=keyboard)
 
 
+@bot.message_handler(func=lambda message: message.text.lower() == "изменить имя")
+def set_name(message):
+    make.NAME = True
+    bot.send_message(message.chat.id, "Как вы хотите, чтобы к вам обращались?")
+
+
+def type_name(message):
+    make.NAME = False
+    person.set_username(message.text)
+    bot.send_message(message.chat.id, "Ваше имя изменено на '" + person.username + "'.")
+
+
 @bot.message_handler(func=lambda message: message.text.lower() == "оставить заявку на долг")
 def make_loan_request(message):
     make.REQUEST = True
@@ -53,22 +65,10 @@ def type_payment(message):
 
 @bot.message_handler(func=lambda message: message.text.lower() == "посмотреть сумму долга")
 def get_current_debt(message):
-    check = ""
-    if person.check > 0.0:
-        check = " (-" + str(person.check) + "k на рассмотрении)"
-    bot.send_message(message.chat.id, "Ваш долг состовляет: " + str(person.debt) + "k" + check + ".")
-
-
-@bot.message_handler(func=lambda message: message.text.lower() == "изменить ваше имя")
-def set_name(message):
-    make.NAME = True
-    bot.send_message(message.chat.id, "Как вы хотите, чтобы к вам обращались?")
-
-
-def type_name(message):
-    make.NAME = False
-    person.set_username(message.text)
-    bot.send_message(message.chat.id, "Ваше имя изменено на '" + person.username + "'.")
+    requested = ""
+    if person.requested > 0.0:
+        requested = " (-" + str(person.requested) + "k на рассмотрении)"
+    bot.send_message(message.chat.id, "Ваш долг состовляет: " + str(person.debt) + "k" + requested + ".")
 
 
 @bot.message_handler(content_types=["text"])
@@ -85,7 +85,7 @@ def send_text(message):
 
 keyboard = telebot.types.ReplyKeyboardMarkup()
 keyboard.row("оставить заявку на долг", "уведомить об оплате долга")
-keyboard.row("посмотреть сумму долга", "изменить ваше имя")
+keyboard.row("посмотреть сумму долга", "изменить имя")
 
 
 bot.polling()

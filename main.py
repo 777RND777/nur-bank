@@ -23,6 +23,8 @@ def start_message(message):
             message.from_user.username,
             0, 0, 0
         )
+        users.append(person)
+        person.add_to_db()
     bot.send_message(message.chat.id, "Приветствуем вас в НурБанке, " + person.username + "!",
                      reply_markup=keyboard)
 

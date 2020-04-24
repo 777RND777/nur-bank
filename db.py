@@ -12,20 +12,31 @@ class User:
         self.requested = requested
         self.approving = approving
 
+    def add_to_db(self):
+        sheet["A" + str(len(users) + 1)] = len(users)
+        sheet["B" + str(len(users) + 1)] = self.first_name
+        sheet["C" + str(len(users) + 1)] = self.first_name
+        sheet["D" + str(len(users) + 1)] = self.last_name
+        sheet["E" + str(len(users) + 1)] = self.username
+        sheet["F" + str(len(users) + 1)] = self.debt
+        sheet["G" + str(len(users) + 1)] = self.requested
+        sheet["H" + str(len(users) + 1)] = self.approving
+        wb.save(name)
+
     def set_username(self, text):
         self.username = text
         sheet["E" + str(self.number+1)].value = self.username
-        wb.save('./DB.xlsx')
+        wb.save(name)
 
     def make_request(self, text):
         self.requested += amount_converter(text)
         sheet["G" + str(self.number + 1)].value = self.requested
-        wb.save('./DB.xlsx')
+        wb.save(name)
 
     def make_payment(self, text):
         self.approving += amount_converter(text)
         sheet["H" + str(self.number+1)].value = self.approving
-        wb.save('./DB.xlsx')
+        wb.save(name)
 
 
 def amount_converter(amount):
@@ -34,7 +45,8 @@ def amount_converter(amount):
     return float(amount)
 
 
-wb = load_workbook('./DB.xlsx')
+name = './DB.xlsx'
+wb = load_workbook(name)
 sheet = wb.get_sheet_by_name('Sheet1')
 users = []
 i = 2

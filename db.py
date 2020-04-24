@@ -17,6 +17,22 @@ class User:
         sheet["E" + str(self.number+1)].value = self.username
         wb.save('./DB.xlsx')
 
+    def make_request(self, text):
+        self.check += amount_converter(text)
+        sheet["G" + str(self.number + 1)].value = self.check
+        wb.save('./DB.xlsx')
+
+    def make_payment(self, text):
+        self.approve += amount_converter(text)
+        sheet["G" + str(self.number+1)].value = self.approve
+        wb.save('./DB.xlsx')
+
+
+def amount_converter(amount):
+    if amount.endswith("000"):
+        return float(amount) / 1000
+    return float(amount)
+
 
 wb = load_workbook('./DB.xlsx')
 sheet = wb.get_sheet_by_name('Sheet1')

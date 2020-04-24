@@ -35,7 +35,7 @@ def make_loan_request(message):
 
 def type_request(message):
     make.REQUEST = False
-    person.debt += amount_converter(message.text)
+    person.make_request(message.text)
     bot.send_message(message.chat.id, "Новая сумма вашего долга состовляет: " + str(person.debt) + "k.")
 
 
@@ -47,14 +47,8 @@ def make_payment_notification(message):
 
 def type_payment(message):
     make.PAYMENT = False
-    person.check += amount_converter(message.text)
+    person.make_payment(message.text)
     bot.send_message(message.chat.id, "Ваше уведомление о внесении " + message.text + "k рассматривается.")
-
-
-def amount_converter(amount):
-    if amount.endswith("000"):
-        return float(amount) / 1000
-    return float(amount)
 
 
 @bot.message_handler(func=lambda message: message.text.lower() == "посмотреть сумму долга")

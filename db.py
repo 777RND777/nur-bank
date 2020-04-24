@@ -12,6 +12,11 @@ class User:
         self.check = check
         self.approve = approve
 
+    def set_username(self, text):
+        self.username = text
+        sheet["E" + str(self.number+1)].value = self.username
+        wb.save('./DB.xlsx')
+
 
 wb = load_workbook('./DB.xlsx')
 sheet = wb.get_sheet_by_name('Sheet1')

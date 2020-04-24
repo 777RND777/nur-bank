@@ -4,7 +4,7 @@ import consts as make
 
 
 bot = telebot.TeleBot("990303016:AAEQfd5PnZsjgitwo0HvcLVLMQty47JI_WU")
-person = User(0, "first_name", "last_name", "user_name", 0, 0, 0)
+person = User(0, 0, "first_name", "last_name", "user_name", 0, 0, 0)
 
 
 @bot.message_handler(commands=["start"])
@@ -16,6 +16,7 @@ def start_message(message):
             break
     else:
         person = User(
+            0,
             message.from_user.id,
             message.from_user.first_name,
             message.from_user.last_name,
@@ -72,7 +73,7 @@ def set_name(message):
 
 def type_name(message):
     make.NAME = False
-    person.username = message.text
+    person.set_username(message.text)
     bot.send_message(message.chat.id, "Ваше имя изменено на '" + person.username + "'.")
 
 

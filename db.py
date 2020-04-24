@@ -2,7 +2,8 @@ from openpyxl import load_workbook
 
 
 class User:
-    def __init__(self, id_number, first_name, last_name, username, debt, check, approve):
+    def __init__(self, number, id_number, first_name, last_name, username, debt, check, approve):
+        self.number = number
         self.id = id_number
         self.first_name = first_name
         self.last_name = last_name
@@ -18,6 +19,7 @@ users = []
 i = 2
 while sheet["B" + str(i)].value:
     user = User(
+        sheet["A" + str(i)].value,
         sheet["B" + str(i)].value,
         sheet["C" + str(i)].value,
         sheet["D" + str(i)].value,

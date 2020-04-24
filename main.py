@@ -1,4 +1,4 @@
-from db import *
+from db import users, User
 import telebot
 import consts as make
 

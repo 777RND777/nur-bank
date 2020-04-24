@@ -24,7 +24,7 @@ while sheet["B" + str(i)].value:
         sheet["E" + str(i)].value,
         sheet["F" + str(i)].value,
         sheet["G" + str(i)].value,
-        sheet["H" + str(i)].value,
+        sheet["H" + str(i)].value
     )
     users.append(user)
     i += 1

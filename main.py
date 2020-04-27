@@ -48,10 +48,12 @@ def make_loan_request(message):
 
 
 def type_request(message):
-    make.REQUEST = False
-    person.make_request(message.text)
-    bot.send_message(message.chat.id, "Новая сумма вашего долга состовляет: " + str(person.debt) + "k (+ " +
-                     str(person.requested) + "k).\n")
+    error = check_valid(message)
+    if not error:
+        make.REQUEST = False
+        person.make_request(message.text)
+        bot.send_message(message.chat.id, "Новая сумма вашего долга состовляет: " + str(person.debt) + "k (+ " +
+                         str(person.requested) + "k).\n")
 
 
 @bot.message_handler(func=lambda message: message.text.lower() == "уведомить об оплате долга")
@@ -61,10 +63,19 @@ def make_payment_notification(message):
 
 
 def type_payment(message):
-    make.PAYMENT = False
-    person.make_payment(message.text)
-    bot.send_message(message.chat.id, "Ваше уведомление о внесении " + message.text + "k рассматривается.")
+    error = check_valid(message)
+    if not error:
+        make.PAYMENT = False
+        person.make_payment(message.text)
+        bot.send_message(message.chat.id, "Ваше уведомление о внесении " + message.text + "k рассматривается.")
 
+
+def check_valid(message):
+    if not message.text.isdigit():
+        bot.send_message(message.chat.id, "Введенное вами значение не является числовым. "
+                                          "Введите сумму, используя только числа.")
+        return True
+    return False
 
 @bot.message_handler(func=lambda message: message.text.lower() == "посмотреть сумму долга")
 def get_current_debt(message):

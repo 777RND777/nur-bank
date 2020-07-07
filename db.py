@@ -13,8 +13,8 @@ class User:
         self.approving = approving
 
     def add_to_db(self):
-        sheet["A" + str(len(users) + 1)] = len(users)
-        sheet["B" + str(len(users) + 1)] = self.first_name
+        sheet["A" + str(len(users) + 1)] = self.number
+        sheet["B" + str(len(users) + 1)] = self.id
         sheet["C" + str(len(users) + 1)] = self.first_name
         sheet["D" + str(len(users) + 1)] = self.last_name
         sheet["E" + str(len(users) + 1)] = self.username
@@ -52,7 +52,7 @@ users = []
 i = 2
 while sheet["B" + str(i)].value:
     user = User(
-        sheet["A" + str(i)].value,
+        int(sheet["A" + str(i)].value),
         sheet["B" + str(i)].value,
         sheet["C" + str(i)].value,
         sheet["D" + str(i)].value,

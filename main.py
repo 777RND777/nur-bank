@@ -16,7 +16,7 @@ def start_message(message):
             break
     else:
         person = User(
-            0,
+            len(users) + 1,
             message.from_user.id,
             message.from_user.first_name,
             message.from_user.last_name,
@@ -52,7 +52,7 @@ def type_request(message):
     if not error:
         make.REQUEST = False
         person.make_request(message.text)
-        bot.send_message(message.chat.id, "Новая сумма вашего долга состовляет: " + str(person.debt) + "k (+ " +
+        bot.send_message(message.chat.id, "Новая сумма вашего долга состовляет: " + str(person.debt) + "k (+" +
                          str(person.requested) + "k).\n")
 
 
@@ -76,6 +76,7 @@ def check_valid(message):
                                           "Введите сумму, используя только числа.")
         return True
     return False
+
 
 @bot.message_handler(func=lambda message: message.text.lower() == "посмотреть сумму долга")
 def get_current_debt(message):

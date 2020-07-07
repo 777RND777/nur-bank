@@ -80,11 +80,11 @@ def check_valid(message):
 
 @bot.message_handler(func=lambda message: message.text.lower() == "посмотреть сумму долга")
 def get_current_debt(message):
-    bot.send_message(message.chat.id, "Ваш долг состовляет: " + str(person.debt) + "k.")
+    bot.send_message(message.chat.id, "Сумма вашего долга состовляет: " + str(person.debt) + "k.")
     if person.approving > 0.0:
         bot.send_message(message.chat.id, "Ожидает подтверждения об оплате сумма: " + str(person.approving) + "k.")
     if person.requested > 0.0:
-        bot.send_message(message.chat.id, "Оставлена заявка в долг на сумму: " + str(person.requested) + "k.")
+        bot.send_message(message.chat.id, "Оставлена заявка на сумму: " + str(person.requested) + "k.")
 
 
 @bot.message_handler(content_types=["text"])

@@ -9,19 +9,7 @@ bot = telebot.TeleBot("990303016:AAEQfd5PnZsjgitwo0HvcLVLMQty47JI_WU")
 @bot.message_handler(commands=["start"])
 def start_message(message):
     global person
-    for user in get_users():
-        if user.id == message.from_user.id:
-            person = user
-            break
-    else:
-        person = User(
-            message.from_user.id,
-            message.from_user.first_name,
-            message.from_user.last_name,
-            message.from_user.username,
-            0, 0, 0
-        )
-        add_user(person)
+    person = get_person(message)
     bot.send_message(message.chat.id, f"Приветствуем вас в НурБанке, {person.username}!",
                      reply_markup=keyboard)
 
@@ -77,6 +65,11 @@ def check_valid(message):
 
 @bot.message_handler(func=lambda message: message.text.lower() == "посмотреть сумму долга")
 def get_current_debt(message):
+    # actually this part is useless because bot will not stop it's run in the future
+    global person
+    if not person.id:
+        person = get_person(message)
+
     bot.send_message(message.chat.id, f"Сумма вашего долга состовляет: {person.debt}k.")
     if person.approving > 0.0:
         bot.send_message(message.chat.id, f"Ожидает подтверждения об оплате сумма: {person.approving}k.")

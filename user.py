@@ -36,3 +36,19 @@ def get_users():
     for i in info:
         users.append(User(i[0], i[1], i[2], i[3], i[4], i[5], i[6]))
     return users
+
+
+def get_person(message):
+    for user in get_users():
+        if user.id == message.from_user.id:
+            return user
+
+    person = User(
+        message.from_user.id,
+        message.from_user.first_name,
+        message.from_user.last_name,
+        message.from_user.username,
+        0, 0, 0
+    )
+    add_user(person)
+    return person

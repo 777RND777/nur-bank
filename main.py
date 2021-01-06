@@ -1,4 +1,4 @@
-from db import users, User
+from user import *
 import telebot
 import consts as make
 
@@ -9,21 +9,19 @@ bot = telebot.TeleBot("990303016:AAEQfd5PnZsjgitwo0HvcLVLMQty47JI_WU")
 @bot.message_handler(commands=["start"])
 def start_message(message):
     global person
-    for user in users:
+    for user in get_users():
         if user.id == message.from_user.id:
             person = user
             break
     else:
         person = User(
-            len(users) + 1,
             message.from_user.id,
             message.from_user.first_name,
             message.from_user.last_name,
             message.from_user.username,
             0, 0, 0
         )
-        users.append(person)
-        person.add_to_db()
+        add_user(person)
     bot.send_message(message.chat.id, f"Приветствуем вас в НурБанке, {person.username}!",
                      reply_markup=keyboard)
 
@@ -102,7 +100,8 @@ def send_text(message):
         bot.send_message(message.chat.id, "Вы неправильно ввели команду.")
 
 
-person = User(0, 0, "", "", "", 0, 0, 0)
+person = User(0, "", "", "", 0, 0, 0)
+print(get_users())
 keyboard = telebot.types.ReplyKeyboardMarkup()
 keyboard.row("оставить заявку на долг", "уведомить об оплате долга")
 keyboard.row("посмотреть сумму долга", "изменить имя")

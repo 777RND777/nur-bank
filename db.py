@@ -1,65 +1,59 @@
-from openpyxl import load_workbook
+import sqlite3
 
 
-class User:
-    def __init__(self, number, id_number, first_name, last_name, username, debt, requested, approving):
-        self.number = number
-        self.id = id_number
-        self.first_name = first_name
-        self.last_name = last_name
-        self.username = username
-        self.debt = debt
-        self.requested = requested
-        self.approving = approving
-
-    def add_to_db(self):
-        sheet["A" + str(len(users) + 1)] = self.number
-        sheet["B" + str(len(users) + 1)] = self.id
-        sheet["C" + str(len(users) + 1)] = self.first_name
-        sheet["D" + str(len(users) + 1)] = self.last_name
-        sheet["E" + str(len(users) + 1)] = self.username
-        sheet["F" + str(len(users) + 1)] = self.debt
-        sheet["G" + str(len(users) + 1)] = self.requested
-        sheet["H" + str(len(users) + 1)] = self.approving
-        wb.save(name)
-
-    def set_username(self, text):
-        self.username = text
-        sheet["E" + str(self.number+1)].value = self.username
-        wb.save(name)
-
-    def make_request(self, text):
-        self.requested += amount_converter(text)
-        sheet["G" + str(self.number + 1)].value = self.requested
-        wb.save(name)
-
-    def make_payment(self, text):
-        self.approving += amount_converter(text)
-        sheet["H" + str(self.number+1)].value = self.approving
-        wb.save(name)
+def create_table():
+    c.execute("""CREATE TABLE users (
+                 id integer,
+                 first text,
+                 last text,
+                 username text,
+                 debt double,
+                 requested double,
+                 approving double
+                 )""")
+    with conn:
+        c.execute("INSERT INTO users VALUES (:id, :first, :last, :username, :debt, :requested, :approving)",
+                  {'id': 830667168, 'first': "first1", 'last': "last1", 'username': "username1",
+                   'debt': 265, 'requested': 0, 'approving': 0})
+        c.execute("INSERT INTO users VALUES (:id, :first, :last, :username, :debt, :requested, :approving)",
+                  {'id': 294728712, 'first': "first2", 'last': "last2", 'username': "username2",
+                   'debt': 50, 'requested': 0, 'approving': 0})
 
 
-def amount_converter(amount):
-    if amount.endswith("000"):
-        return float(amount) / 1000
-    return float(amount)
+def add_user(user):
+    with conn:
+        c.execute("INSERT INTO users VALUES (:id, :first, :last, :username, :debt, :requested, :approving)",
+                  {'id': user.id, 'first': user.first, 'last': user.last, 'username': user.username,
+                   'debt': user.debt, 'requested': user.requested, 'approving': user.approving})
 
 
-name = './DB.xlsx'
-wb = load_workbook(name)
-sheet = wb.get_sheet_by_name('Sheet1')
-users = []
-i = 2
-while sheet["B" + str(i)].value:
-    user = User(
-        int(sheet["A" + str(i)].value),
-        sheet["B" + str(i)].value,
-        sheet["C" + str(i)].value,
-        sheet["D" + str(i)].value,
-        sheet["E" + str(i)].value,
-        sheet["F" + str(i)].value,
-        sheet["G" + str(i)].value,
-        sheet["H" + str(i)].value
-    )
-    users.append(user)
-    i += 1
+def get_info():
+    with conn:
+        c.execute("SELECT * FROM users")
+        return c.fetchall()
+
+
+def change_value(user, prop, value):
+    with conn:
+        c.execute(f"""UPDATE users SET {prop} = :value
+                      WHERE id = :id""",
+                  {'id': user.id, 'value': value})
+
+
+def accept_request(user):
+    with conn:
+        c.execute("""UPDATE users SET debt = :debt, requested = :requested
+                     WHERE id = :id""",
+                  {'id': user.id, 'debt': user.debt + user.requested, 'requested': 0.0})
+
+
+def approve_payment(user):
+    with conn:
+        c.execute("""UPDATE users SET debt = :approving, approving = :approving
+                     WHERE id = :id""",
+                  {'id': user.id, 'debt': user.debt - user.approving, 'approving': 0.0})
+
+
+name = 'users.db'
+conn = sqlite3.connect(name, check_same_thread=False)
+c = conn.cursor()

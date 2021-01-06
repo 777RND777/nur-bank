@@ -101,7 +101,7 @@ def send_text(message):
 
 
 person = User(0, "", "", "", 0, 0, 0)
-print(get_users())
+
 keyboard = telebot.types.ReplyKeyboardMarkup()
 keyboard.row("оставить заявку на долг", "уведомить об оплате долга")
 keyboard.row("посмотреть сумму долга", "изменить имя")

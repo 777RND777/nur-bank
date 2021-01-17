@@ -2,7 +2,7 @@ import sqlite3
 
 
 def create_table():
-    c.execute("""CREATE TABLE users (
+    c.execute("""CREATE TABLE IF NOT EXISTS users (
                  id integer,
                  first text,
                  last text,
@@ -57,3 +57,5 @@ def approve_payment(user):
 name = 'users.db'
 conn = sqlite3.connect(name, check_same_thread=False)
 c = conn.cursor()
+# c.execute("DROP TABLE users")
+create_table()

@@ -1,26 +1,36 @@
+from sqlalchemy.orm import relationship
 from . import Base, db, session
 
 
-# class Request(Base):
-#     __tablename__ = "requests"
-#     # TODO relationship
-#     user_id = db.Column(db.Integer, nullable=False, unique=True)
-#
-#     value = db.Column(db.Float, default=0)
-#     last_name = db.Column(db.String(250), nullable=False)
-#     date = db.Column(db.Date(), nullable=False)
+class Application(Base):
+    __tablename__ = "applications"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.user_id"))
+    value = db.Column(db.Float)
+    request_date = db.Column(db.Date)
+    answer_date = db.Column(db.Date)
+    approved = db.Column(db.Boolean, default=False)
+
+    @classmethod
+    def get_user_list(cls, user_id):
+        try:
+            applications = cls.query.filter(cls.user_id == user_id).all()
+            session.commit()
+            return applications
+        except Exception:
+            session.rollback()
+            raise
 
 
 class User(Base):
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, nullable=False, unique=True)
-    first_name = db.Column(db.String(250), nullable=False)
-    last_name = db.Column(db.String(250), nullable=False)
+    user_id = db.Column(db.Integer, unique=True)
+    first_name = db.Column(db.String(250))
+    last_name = db.Column(db.String(250))
     username = db.Column(db.String(250))
     debt = db.Column(db.Float, default=0)
-    requested = db.Column(db.Float, default=0)
-    approving = db.Column(db.Float, default=0)
+    applications = relationship("Application", backref="user", lazy=True)
 
     def __init__(self, user_id, first_name, last_name):
         self.user_id = user_id
@@ -31,7 +41,7 @@ class User(Base):
     @classmethod
     def get_list(cls):
         try:
-            users = cls.query.filter().all()
+            users = cls.query.all()
             session.commit()
             return users
         except Exception:

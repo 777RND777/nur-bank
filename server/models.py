@@ -1,4 +1,4 @@
-from server import Base, db, session
+from . import Base, db, session
 
 
 class User(Base):

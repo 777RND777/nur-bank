@@ -10,14 +10,15 @@ import sqlalchemy as db
 
 
 app = Flask(__name__)
-# app.config.update({
-#     "APISPEC_SPEC": APISpec(title="bank",
-#                             version="v1",
-#                             openapi_version="2.0",
-#                             plugins=[MarshmallowPlugin()]),
-#     "APISPEC_SWAGGER_URL": "/swagger/"
-# })
-# docs = FlaskApiSpec()
+app.config.update({
+    "APISPEC_SPEC": APISpec(title="bank",
+                            version="v1",
+                            openapi_version="2.0",
+                            plugins=[MarshmallowPlugin()]),
+    "APISPEC_SWAGGER_URL": "/swagger/"
+})
+
+docs = FlaskApiSpec()
 
 client = app.test_client()
 
@@ -32,6 +33,11 @@ Base.query = session.query_property()
 from .models import *
 Base.metadata.create_all(bind=engine)
 
+# place for future
 
+# importing here because of circular import error
 from .users.views import users
 app.register_blueprint(users)
+
+# setting here to include blueprints
+docs.init_app(app)

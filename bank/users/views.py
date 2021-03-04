@@ -1,8 +1,8 @@
 from flask import Blueprint
 from flask_apispec import marshal_with, use_kwargs
-# from server import docs
-from server.models import User
-from server.schemas import UserSchema
+from bank import docs
+from bank.models import User
+from bank.schemas import UserSchema
 
 
 users = Blueprint("users", __name__)
@@ -25,7 +25,7 @@ def get_user(user_id):
 @users.route("/users", methods=["POST"])
 @marshal_with(UserSchema)
 @use_kwargs(UserSchema(only=("user_id", "first_name", "last_name")))
-def add_user(**kwargs):
+def create_user(**kwargs):
     user = User(**kwargs)
     user.save()
     return user
@@ -47,3 +47,9 @@ def remove_user(user_id):
     user.delete()
     return "", 204
 
+
+docs.register(get_user_list, blueprint="users")
+docs.register(get_user, blueprint="users")
+docs.register(create_user, blueprint="users")
+docs.register(update_user, blueprint="users")
+docs.register(remove_user   , blueprint="users")

@@ -1,4 +1,4 @@
-from server import client
+from bank import client
 
 
 user = {

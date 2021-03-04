@@ -14,10 +14,10 @@ update = {
 # c = client.post("users", json=user)
 # print(c.get_json())
 
-# c = client.put("users/1", json=update)
+# c = client.put("users/287100650", json=update)
 # print(c.get_json())
 
-# c = client.delete("users/1")
+# c = client.delete("users/287100650")
 
 
 c = client.get("users")

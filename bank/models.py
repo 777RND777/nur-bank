@@ -1,6 +1,16 @@
 from . import Base, db, session
 
 
+# class Request(Base):
+#     __tablename__ = "requests"
+#     # TODO relationship
+#     user_id = db.Column(db.Integer, nullable=False, unique=True)
+#
+#     value = db.Column(db.Float, default=0)
+#     last_name = db.Column(db.String(250), nullable=False)
+#     date = db.Column(db.Date(), nullable=False)
+
+
 class User(Base):
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
@@ -31,7 +41,7 @@ class User(Base):
     @classmethod
     def get(cls, user_id):
         try:
-            user = cls.query.filter(cls.id == user_id).one()
+            user = cls.query.filter(cls.user_id == user_id).one()
             session.commit()
             return user
         except Exception:

@@ -36,7 +36,9 @@ Base.metadata.create_all(bind=engine)
 # place for future
 
 # importing here because of circular import error
+from .applications.views import applications
 from .users.views import users
+app.register_blueprint(applications)
 app.register_blueprint(users)
 
 # setting here to include blueprints

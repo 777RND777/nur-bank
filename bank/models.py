@@ -7,16 +7,24 @@ class Application(Base):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.user_id"))
     value = db.Column(db.Float)
-    request_date = db.Column(db.Date)
-    answer_date = db.Column(db.Date)
+    request_date = db.Column(db.DateTime)
+    answer_date = db.Column(db.DateTime)
     approved = db.Column(db.Boolean, default=False)
 
     @classmethod
-    def get_user_list(cls, user_id):
+    def get_list(cls):
         try:
-            applications = cls.query.filter(cls.user_id == user_id).all()
+            applications = cls.query.all()
             session.commit()
             return applications
+        except Exception:
+            session.rollback()
+            raise
+
+    def save(self):
+        try:
+            session.add(self)
+            session.commit()
         except Exception:
             session.rollback()
             raise

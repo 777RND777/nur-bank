@@ -13,6 +13,8 @@ def start_message(message):
         'last_name': message.from_user.last_name,
     }
     user = add_user(user_info)
+    if not user:
+        return
     bot.send_message(message.chat.id, f"Приветствуем вас в НурБанке, {user['username']}!",
                      reply_markup=keyboard)
 

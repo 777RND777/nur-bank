@@ -3,7 +3,7 @@ from marshmallow import Schema, fields, validate
 
 class ApplicationSchema(Schema):
     id = fields.Integer(dump_only=True)
-    user_id = fields.Integer(dump_only=True)
+    user_id = fields.Integer()
     value = fields.Float()
     request_date = fields.DateTime()
     answer_date = fields.DateTime()
@@ -17,5 +17,5 @@ class UserSchema(Schema):
     last_name = fields.String(validate=[validate.Length(max=250)])
     username = fields.String(validate=[validate.Length(max=250)])
     debt = fields.Float()
-    applications = fields.Nested(ApplicationSchema, many=True, dump_only=True)
+    # applications = fields.Nested(ApplicationSchema, many=True, dump_only=True)
     # message = fields.String(dump_only=True)

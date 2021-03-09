@@ -1,11 +1,11 @@
-from sqlalchemy.orm import relationship
+# TODO add rework application with relationship
 from . import Base, db, session
 
 
 class Application(Base):
     __tablename__ = "applications"
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.user_id"))
+    user_id = db.Column(db.Integer)
     value = db.Column(db.Float)
     request_date = db.Column(db.DateTime)
     answer_date = db.Column(db.DateTime)
@@ -21,9 +21,46 @@ class Application(Base):
             session.rollback()
             raise
 
+    @classmethod
+    def get_user_list(cls, user_id):
+        try:
+            applications = cls.query.filter(cls.user_id == user_id).all()
+            session.commit()
+            return applications
+        except Exception:
+            session.rollback()
+            raise
+
+    @classmethod
+    def get(cls, user_id, application_id):
+        try:
+            user = cls.query.filter(cls.user_id == user_id, cls.id == application_id).one()
+            session.commit()
+            return user
+        except Exception:
+            session.rollback()
+            raise
+
     def save(self):
         try:
             session.add(self)
+            session.commit()
+        except Exception:
+            session.rollback()
+            raise
+
+    def update(self, **kwargs):
+        try:
+            for key, value in kwargs.items():
+                setattr(self, key, value)
+            session.commit()
+        except Exception:
+            session.rollback()
+            raise
+
+    def delete(self):
+        try:
+            session.delete(self)
             session.commit()
         except Exception:
             session.rollback()
@@ -38,7 +75,6 @@ class User(Base):
     last_name = db.Column(db.String(250))
     username = db.Column(db.String(250))
     debt = db.Column(db.Float, default=0)
-    applications = relationship("Application", backref="user", lazy=True)
 
     def __init__(self, user_id, first_name, last_name):
         self.user_id = user_id

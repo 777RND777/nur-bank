@@ -23,12 +23,6 @@ def start_message(message):
     bot.send_message(message.chat.id, f"Приветствуем вас в НурБанке, {user['username']}!")
 
 
-@bot.message_handler(func=lambda message: message.text == "оставить заявку на долг")
-def make_loan_request(message):
-    msg = bot.send_message(message.chat.id, "Какую сумму вы хотите взять в долг?")
-    bot.register_next_step_handler(msg, loan_info)
-
-
 def validation_check(money_func):
     def wrapper(message):
         value = message.text
@@ -41,9 +35,16 @@ def validation_check(money_func):
             money_func(message, value)
         except ValueError:
             msg = bot.send_message(message.chat.id,
-                                   "Вы неправильно ввели сумму.\nПравильные примеры: 5000 / 5 / 5к.")
+                                   "Вы неправильно ввели сумму.\n"
+                                   "Правильные примеры: '5000' / '5' / '5к'.")
             bot.register_next_step_handler(msg, wrapper)
     return wrapper
+
+
+@bot.message_handler(func=lambda message: message.text == "оставить заявку на долг")
+def make_loan_request(message):
+    msg = bot.send_message(message.chat.id, "Какую сумму вы хотите взять в долг?")
+    bot.register_next_step_handler(msg, loan_info)
 
 
 @validation_check
@@ -77,10 +78,15 @@ def payment_info(message, value):
 @bot.message_handler(func=lambda message: message.text == "посмотреть сумму долга")
 def get_current_debt(message):
     user = get_user(message.from_user.id)
-    bot.send_message(message.chat.id, f"Сумма долга: {user['debt']:,}.")
+    if not user['debt']:
+        bot.send_message(message.chat.id, "У вас нет активных долгов.")
+    else:
+        bot.send_message(message.chat.id, f"Сумма долга: {user['debt']:,}.")
+
     value = get_user_pending_loans(message.from_user.id)
     if value > 0:
         bot.send_message(message.chat.id, f"Сумма долга рассмотрении: {value:,}.")
+
     value = get_user_pending_payments(message.from_user.id)
     if value > 0:
         bot.send_message(message.chat.id, f"Оплаченная сумма на рассмотрении: {value:,}.")
@@ -103,8 +109,8 @@ def send_text(message):
     bot.send_message(message.chat.id, "Вы неправильно ввели команду.")
 
 
-# TODO hide keyboard
-keyboard = types.ReplyKeyboardMarkup()
-keyboard.row("оставить заявку на долг", "уведомить об оплате долга")
-keyboard.row("посмотреть сумму долга", "изменить имя")
-bot.polling()
+if __name__ == "__main__":
+    keyboard = types.ReplyKeyboardMarkup()
+    keyboard.row("оставить заявку на долг", "уведомить об оплате долга")
+    keyboard.row("посмотреть сумму долга", "изменить имя")
+    bot.polling()

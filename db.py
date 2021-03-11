@@ -23,7 +23,7 @@ def change_user(user_id: int, json: dict):
 
 
 def create_application(json: dict):
-    _ = client.post(f"application", json=json)
+    _ = client.post("applications", json=json)
 
 
 def get_user_pending_loans(user_id):

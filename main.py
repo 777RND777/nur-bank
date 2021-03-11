@@ -1,4 +1,5 @@
 from db import *
+from telebot import types
 import telebot
 
 
@@ -7,99 +8,88 @@ bot = telebot.TeleBot("990303016:AAEQfd5PnZsjgitwo0HvcLVLMQty47JI_WU")
 
 @bot.message_handler(commands=["start"])
 def start_message(message):
+    # TODO fix errors
+    # user = get_user(message.from_user.id)
+    # if user:
+    #     bot.send_message(message.chat.id, f"С возвращением в НурБанк, {user['username']}!")
+    #     return
+
     user_info = {
         'user_id': message.from_user.id,
         'first_name': message.from_user.first_name,
         'last_name': message.from_user.last_name,
     }
-    user = add_user(user_info)
-    if not user:
-        return
-    bot.send_message(message.chat.id, f"Приветствуем вас в НурБанке, {user['username']}!",
-                     reply_markup=keyboard)
+    user = create_user(user_info)
+    bot.send_message(message.chat.id, f"Приветствуем вас в НурБанке, {user['username']}!")
 
 
-# @bot.message_handler(func=lambda message: message.text.lower() == "изменить имя")
-# def set_name(message):
-#     make.NAME = True
-#     bot.send_message(message.chat.id, "Как вы хотите, чтобы к вам обращались?")
-#
-#
-# def type_name(message):
-#     make.NAME = False
-#     person.set_username(message.text)
-#     bot.send_message(message.chat.id, f"Ваше имя изменено на '{person.username}'.")
-#
-#
-# @bot.message_handler(func=lambda message: message.text.lower() == "оставить заявку на долг")
-# def make_loan_request(message):
-#     make.REQUEST = True
-#     bot.send_message(message.chat.id, "Какую сумму вы хотите взять в долг?")
-#
-#
-# def type_request(message):
-#     if check_valid(message):
-#         make.REQUEST = False
-#         person.make_request(message.text)
-#         bot.send_message(message.chat.id, f"Новая сумма вашего долга состовляет: {person.debt}k "
-#                                           f"(+{person.requested}k).\n")
-#
-#
-# @bot.message_handler(func=lambda message: message.text.lower() == "уведомить об оплате долга")
-# def make_payment_notification(message):
-#     make.PAYMENT = True
-#     bot.send_message(message.chat.id, f"Какую сумму из вашего долга {person.debt}k вы оплатили?")
-#
-#
-# def type_payment(message):
-#     if check_valid(message):
-#         make.PAYMENT = False
-#         person.make_payment(message.text)
-#         bot.send_message(message.chat.id, f"Ваше уведомление об оплате {message.text} k находится на рассмотрении.")
-#         return True
-#     return False
-#
-#
-# def check_valid(message):
-#     if message.text.isdigit():
-#         return True
-#     bot.send_message(message.chat.id, "Введенное вами значение не является числовым. "
-#                                       "Введите сумму, используя только числа.")
-#     return False
-#
-#
-# @bot.message_handler(func=lambda message: message.text.lower() == "посмотреть сумму долга")
-# def get_current_debt(message):
-#     # actually this part is useless because bot will not stop it's run in the future
-#     global person
-#     if not person.id:
-#         person = get_person(message)
-#
-#     bot.send_message(message.chat.id, f"Сумма вашего долга состовляет: {person.debt}k.")
-#     if person.approving > 0.0:
-#         bot.send_message(message.chat.id, f"Ожидает подтверждения об оплате сумма: {person.approving}k.")
-#     if person.requested > 0.0:
-#         bot.send_message(message.chat.id, f"Оставлена заявка на сумму: {person.requested}k.")
+@bot.message_handler(func=lambda message: message.text == "оставить заявку на долг")
+def make_loan_request(message):
+    msg = bot.send_message(message.chat.id, "Какую сумму вы хотите взять в долг?")
+    bot.register_next_step_handler(msg, loan_info)
+
+
+def loan_info(message):
+    # TODO validation check
+    value = float(message.text)
+    application = {
+        'user_id': message.from_user.id,
+        'value': value,
+    }
+    create_application(application)
+    bot.send_message(message.chat.id,
+                     f"Ваша заявка на получение долга в размере {value}k отправлена на рассмотрение")
+
+
+@bot.message_handler(func=lambda message: message.text == "уведомить об оплате долга")
+def make_payment_notification(message):
+    msg = bot.send_message(message.chat.id, "Какую сумму из вашего долга вы оплатили?")
+    bot.register_next_step_handler(msg, payment_info)
+
+
+def payment_info(message):
+    # TODO validation check
+    value = float(message.text)
+    application = {
+        'user_id': message.from_user.id,
+        'value': -value,
+    }
+    create_application(application)
+    bot.send_message(message.chat.id,
+                     f"Ваше уведомление о совершении оплаты в размере {value}k находится на проверке")
+
+
+@bot.message_handler(func=lambda message: message.text == "посмотреть сумму долга")
+def get_current_debt(message):
+    user = get_user(message.from_user.id)
+    bot.send_message(message.chat.id, f"Сумма долга: {user['debt']}k.")
+    value = get_user_pending_loans(message.from_user.id)
+    if value > 0:
+        bot.send_message(message.chat.id, f"Сумма долга рассмотрении: {value}k.")
+    value = get_user_pending_payments(message.from_user.id)
+    if value > 0:
+        bot.send_message(message.chat.id, f"Оплаченная сумма на рассмотрении: {value}k.")
+
+
+@bot.message_handler(func=lambda message: message.text == "изменить имя")
+def change_username(message):
+    msg = bot.send_message(message.chat.id, "Как вы хотите, чтобы к вам обращались?")
+    bot.register_next_step_handler(msg, type_username)
+
+
+def type_username(message):
+    user_info = {'username': message.text}
+    change_user(message.from_user.id, user_info)
+    bot.send_message(message.chat.id, f"Ваше имя изменено на '{message.text}'.")
 
 
 @bot.message_handler(content_types=["text"])
 def send_text(message):
-    # if make.REQUEST:
-    #     type_request(message)
-    #     bot.send_message(make.OWNER,
-    #                      f"{message.from_user.first_name} {message.from_user.last_name} запросил {message.text}k")
-    # elif make.PAYMENT:
-    #     if type_payment(message):
-    #         bot.send_message(make.OWNER,
-    #                          f"{message.from_user.first_name} {message.from_user.last_name} оплатил {message.text}k")
-    # elif make.NAME:
-    #     type_name(message)
-    # else:
-    #     bot.send_message(message.chat.id, "Вы неправильно ввели команду.")
-    print(message)
+    bot.send_message(message.chat.id, "Вы неправильно ввели команду.")
 
-keyboard = telebot.types.ReplyKeyboardMarkup()
+
+# TODO hide keyboard
+keyboard = types.ReplyKeyboardMarkup()
 keyboard.row("оставить заявку на долг", "уведомить об оплате долга")
 keyboard.row("посмотреть сумму долга", "изменить имя")
-
 bot.polling()

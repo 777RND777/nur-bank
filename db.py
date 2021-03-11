@@ -1,7 +1,6 @@
 from bank import client
 # TODO error log
-# TODO answer message
-# TODO move to main
+# TODO maybe move to main
 
 
 def get_all_users():
@@ -14,11 +13,32 @@ def get_user(user_id: int):
     return c.get_json()
 
 
-def add_user(user):
+def create_user(user: dict):
     c = client.post("users", json=user)
     return c.get_json()
 
 
 def change_user(user_id: int, json: dict):
-    c = client.put(f"users/{user_id}", json=json)
-    return c.get_json()
+    _ = client.put(f"users/{user_id}", json=json)
+
+
+def create_application(json: dict):
+    _ = client.post(f"application", json=json)
+
+
+def get_user_pending_loans(user_id):
+    c = client.get(f"users/{user_id}/applications")
+    value = 0
+    for application in c.get_json():
+        if application["value"] > 0 and not application["approved"]:
+            value += application["value"]
+    return value
+
+
+def get_user_pending_payments(user_id):
+    c = client.get(f"users/{user_id}/applications")
+    value = 0
+    for application in c.get_json():
+        if application["value"] < 0 and not application["approved"]:
+            value -= application["value"]
+    return value

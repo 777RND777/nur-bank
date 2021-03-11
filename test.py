@@ -18,7 +18,7 @@ user = {
 
 application = {
     'user_id': 287100650,
-    'value': 120.0,
+    'value': 120,
 }
 c = client.post("/applications", json=application)
 print(c.get_json())

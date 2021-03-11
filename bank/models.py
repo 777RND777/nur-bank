@@ -6,7 +6,7 @@ class Application(Base):
     __tablename__ = "applications"
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer)
-    value = db.Column(db.Float)
+    value = db.Column(db.Integer)
     request_date = db.Column(db.DateTime)
     answer_date = db.Column(db.DateTime)
     approved = db.Column(db.Boolean, default=False)
@@ -74,7 +74,7 @@ class User(Base):
     first_name = db.Column(db.String(250))
     last_name = db.Column(db.String(250))
     username = db.Column(db.String(250))
-    debt = db.Column(db.Float, default=0)
+    debt = db.Column(db.Integer, default=0)
 
     def __init__(self, user_id, first_name, last_name):
         self.user_id = user_id

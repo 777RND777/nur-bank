@@ -29,16 +29,32 @@ def make_loan_request(message):
     bot.register_next_step_handler(msg, loan_info)
 
 
-def loan_info(message):
-    # TODO validation check
-    value = float(message.text)
+def validation_check(money_func):
+    def wrapper(message):
+        value = message.text
+        if value.endswith("к") or value.endswith("k"):
+            value = value[:-1] + "000"
+        elif len(value) < 4 or not value.endswith("000"):
+            value = value + "000"
+        try:
+            value = int(value)
+            money_func(message, value)
+        except ValueError:
+            msg = bot.send_message(message.chat.id,
+                                   "Вы неправильно ввели сумму.\nПравильные примеры: 5000 / 5 / 5к.")
+            bot.register_next_step_handler(msg, wrapper)
+    return wrapper
+
+
+@validation_check
+def loan_info(message, value):
     application = {
         'user_id': message.from_user.id,
         'value': value,
     }
     create_application(application)
     bot.send_message(message.chat.id,
-                     f"Ваша заявка на получение долга в размере {value}k отправлена на рассмотрение")
+                     f"Ваша заявка на получение долга в размере {value:,} отправлена на рассмотрение.")
 
 
 @bot.message_handler(func=lambda message: message.text == "уведомить об оплате долга")
@@ -47,28 +63,27 @@ def make_payment_notification(message):
     bot.register_next_step_handler(msg, payment_info)
 
 
-def payment_info(message):
-    # TODO validation check
-    value = float(message.text)
+@validation_check
+def payment_info(message, value):
     application = {
         'user_id': message.from_user.id,
         'value': -value,
     }
     create_application(application)
     bot.send_message(message.chat.id,
-                     f"Ваше уведомление о совершении оплаты в размере {value}k находится на проверке")
+                     f"Ваше уведомление о совершении оплаты в размере {value:,} находится на проверке.")
 
 
 @bot.message_handler(func=lambda message: message.text == "посмотреть сумму долга")
 def get_current_debt(message):
     user = get_user(message.from_user.id)
-    bot.send_message(message.chat.id, f"Сумма долга: {user['debt']}k.")
+    bot.send_message(message.chat.id, f"Сумма долга: {user['debt']:,}.")
     value = get_user_pending_loans(message.from_user.id)
     if value > 0:
-        bot.send_message(message.chat.id, f"Сумма долга рассмотрении: {value}k.")
+        bot.send_message(message.chat.id, f"Сумма долга рассмотрении: {value:,}.")
     value = get_user_pending_payments(message.from_user.id)
     if value > 0:
-        bot.send_message(message.chat.id, f"Оплаченная сумма на рассмотрении: {value}k.")
+        bot.send_message(message.chat.id, f"Оплаченная сумма на рассмотрении: {value:,}.")
 
 
 @bot.message_handler(func=lambda message: message.text == "изменить имя")

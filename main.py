@@ -43,8 +43,12 @@ def validation_check(money_func):
 
 @bot.message_handler(func=lambda message: message.text == "оставить заявку на долг")
 def make_loan_request(message):
-    msg = bot.send_message(message.chat.id, "Какую сумму вы хотите взять в долг?")
-    bot.register_next_step_handler(msg, loan_info)
+    value = get_user_pending_loans(message.from_user.id)
+    if value == 3:
+        bot.send_message(message.chat.id, f"У вас слишком много ожидающих заявок. Дождитесь ответа на предыдущие.")
+    else:
+        msg = bot.send_message(message.chat.id, "Какую сумму вы хотите взять в долг?")
+        bot.register_next_step_handler(msg, loan_info)
 
 
 @validation_check

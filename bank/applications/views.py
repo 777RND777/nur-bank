@@ -16,13 +16,6 @@ def get_application_list():
     return application_list
 
 
-@applications.route("/users/<int:user_id>/applications", methods=["GET"])
-@marshal_with(ApplicationSchema(many=True))
-def get_user_application_list(user_id):
-    application_list = Application.get_user_list(user_id)
-    return application_list
-
-
 @applications.route("/applications", methods=["POST"])
 @marshal_with(ApplicationSchema)
 @use_kwargs(ApplicationSchema(only=("user_id", "value")))
@@ -51,7 +44,6 @@ def remove_application(user_id, application_id):
 
 
 docs.register(get_application_list, blueprint="applications")
-docs.register(get_user_application_list, blueprint="applications")
 docs.register(create_application, blueprint="applications")
 docs.register(update_application, blueprint="applications")
 docs.register(remove_application, blueprint="applications")

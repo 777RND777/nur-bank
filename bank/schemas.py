@@ -8,6 +8,7 @@ class ApplicationSchema(Schema):
     request_date = fields.DateTime()
     answer_date = fields.DateTime()
     approved = fields.Boolean()
+    # message = fields.String(dump_only=True)
 
 
 class UserSchema(Schema):
@@ -17,5 +18,5 @@ class UserSchema(Schema):
     last_name = fields.String(validate=[validate.Length(max=250)])
     username = fields.String(validate=[validate.Length(max=250)])
     debt = fields.Integer()
-    # applications = fields.Nested(ApplicationSchema, many=True, dump_only=True)
+    applications = fields.Nested(ApplicationSchema, many=True, dump_only=True)
     # message = fields.String(dump_only=True)

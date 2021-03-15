@@ -1,11 +1,11 @@
-# TODO add rework application with relationship
+from sqlalchemy.orm import relationship
 from . import Base, db, session
 
 
 class Application(Base):
     __tablename__ = "applications"
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.user_id"), nullable=False)
     value = db.Column(db.Integer, nullable=False)
     request_date = db.Column(db.DateTime, nullable=False)
     answer_date = db.Column(db.DateTime)
@@ -66,6 +66,9 @@ class Application(Base):
             session.rollback()
             raise
 
+    def __repr__(self):
+        return f"By {self.author}"
+
 
 class User(Base):
     __tablename__ = "users"
@@ -75,6 +78,7 @@ class User(Base):
     last_name = db.Column(db.String(250), nullable=False)
     username = db.Column(db.String(250))
     debt = db.Column(db.Integer, default=0)
+    applications = relationship("Application", backref="author", lazy=True)
 
     def __init__(self, user_id, first_name, last_name):
         self.user_id = user_id
@@ -126,3 +130,6 @@ class User(Base):
         except Exception:
             session.rollback()
             raise
+
+    def __repr__(self):
+        return f"{self.first_name} {self.last_name}"

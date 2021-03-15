@@ -1,5 +1,4 @@
 # TODO add rework application with relationship
-from sqlalchemy.orm import exc
 from . import Base, db, session
 
 
@@ -35,12 +34,12 @@ class Application(Base):
     @classmethod
     def get(cls, user_id, application_id):
         try:
-            user = cls.query.filter(cls.user_id == user_id, cls.id == application_id).one()
+            user = cls.query.filter(cls.user_id == user_id, cls.id == application_id).first()
             session.commit()
             return user
-        except exc.NoResultFound:
+        except Exception:
             session.rollback()
-        # None return
+            raise
 
     def save(self):
         try:
@@ -96,7 +95,7 @@ class User(Base):
     @classmethod
     def get(cls, user_id):
         try:
-            user = cls.query.filter(cls.user_id == user_id).one()
+            user = cls.query.filter(cls.user_id == user_id).first()
             session.commit()
             return user
         except Exception:

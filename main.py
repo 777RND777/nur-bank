@@ -9,11 +9,10 @@ bot = telebot.TeleBot("990303016:AAEQfd5PnZsjgitwo0HvcLVLMQty47JI_WU")
 
 @bot.message_handler(commands=["start"])
 def start_message(message):
-    # TODO fix errors
-    # user = get_user(message.from_user.id)
-    # if user:
-    #     bot.send_message(message.chat.id, f"С возвращением в НурБанк, {user['username']}!")
-    #     return
+    user = get_user(message.from_user.id)
+    if user:
+        bot.send_message(message.chat.id, f"С возвращением в НурБанк, {user['username']}!")
+        return
 
     user_info = {
         'user_id': message.from_user.id,

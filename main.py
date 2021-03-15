@@ -100,7 +100,7 @@ def get_current_debt(message):
 
     value = get_user_pending_loans(message.from_user.id)
     if value > 0:
-        bot.send_message(message.chat.id, f"Сумма долга рассмотрении: {value:,}.")
+        bot.send_message(message.chat.id, f"Сумма в долг на рассмотрении: {value:,}.")
 
     value = get_user_pending_payments(message.from_user.id)
     if value > 0:
@@ -110,7 +110,7 @@ def get_current_debt(message):
 @bot.message_handler(func=lambda message: message.text == "изменить имя")
 def change_username(message):
     msg = bot.send_message(message.chat.id, "Как вы хотите, чтобы к вам обращались?\n"
-                                            f"Имя '{BACK}' не разрешено",
+                                            f"Имя '{BACK}' не разрешено. Вы будете отправлены назад.",
                            reply_markup=keyboard_back)
     bot.register_next_step_handler(msg, type_username)
 

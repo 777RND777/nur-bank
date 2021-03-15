@@ -5,9 +5,9 @@ from . import Base, db, session
 class Application(Base):
     __tablename__ = "applications"
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer)
-    value = db.Column(db.Integer)
-    request_date = db.Column(db.DateTime)
+    user_id = db.Column(db.Integer, nullable=False)
+    value = db.Column(db.Integer, nullable=False)
+    request_date = db.Column(db.DateTime, nullable=False)
     answer_date = db.Column(db.DateTime)
     approved = db.Column(db.Boolean, default=False)
 
@@ -70,9 +70,9 @@ class Application(Base):
 class User(Base):
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, unique=True)
-    first_name = db.Column(db.String(250))
-    last_name = db.Column(db.String(250))
+    user_id = db.Column(db.Integer, unique=True, nullable=False)
+    first_name = db.Column(db.String(250), nullable=False)
+    last_name = db.Column(db.String(250), nullable=False)
     username = db.Column(db.String(250))
     debt = db.Column(db.Integer, default=0)
 

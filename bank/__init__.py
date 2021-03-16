@@ -22,7 +22,7 @@ docs = FlaskApiSpec()
 
 client = app.test_client()
 
-engine = create_engine("sqlite:///db.sqlite")
+engine = create_engine("sqlite:///bank/db.sqlite")
 session = scoped_session(sessionmaker(autocommit=False,
                                       autoflush=False,
                                       bind=engine))

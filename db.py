@@ -14,6 +14,9 @@ def get_user(user_id: int):
 
 
 def create_user(user: dict):
+    for key, value in user.items():
+        if not value:
+            user[key] = ""
     c = client.post("/users", json=user)
     return c.get_json()
 

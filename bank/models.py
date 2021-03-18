@@ -66,9 +66,6 @@ class Application(Base):
             session.rollback()
             raise
 
-    # def __str__(self):
-    #     return f"от {self.author}"
-
 
 class User(Base):
     __tablename__ = "users"
@@ -130,6 +127,3 @@ class User(Base):
         except Exception:
             session.rollback()
             raise
-
-    # def __repr__(self):
-    #     return f"{self.first_name} '{self.username}' {self.last_name}"

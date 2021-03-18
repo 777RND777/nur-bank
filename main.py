@@ -18,32 +18,6 @@ keyboard_admin.row("ожидающие заявки", "подтвердить з
 keyboard_admin.row("общая сумма в долгах")
 
 
-@bot.message_handler(commands=["start"])
-def start_message(message):
-    if message.from_user.id == OWNER_ID:
-        bot.send_message(message.chat.id, f"С возвращением, НурБанк!")
-        return
-
-    user = get_user(message.from_user.id)
-    if user:
-        bot.send_message(message.chat.id, f"С возвращением в НурБанк, {user['username']}!")
-        return
-
-    user_info = {
-        'user_id': message.from_user.id,
-        'first_name': message.from_user.first_name,
-        'last_name': message.from_user.last_name,
-        'username': message.from_user.username,
-    }
-    user = create_user(user_info)
-    bot.send_message(message.chat.id, f"Приветствуем вас в НурБанке, {user['username']}!",
-                     reply_markup=keyboard_user)
-
-    bot.send_message(OWNER_ID,
-                     f"Новый пользователь Нурбанка: {user['first_name']} '{user['username']}' {user['last_name']}",
-                     reply_markup=keyboard_admin)
-
-
 def validation_check(money_func):
     def wrapper(message):
         value = message.text
@@ -91,7 +65,8 @@ def loan_info(message, value):
 
     user = get_user(message.from_user.id)
     bot.send_message(OWNER_ID,
-                     f"{user['first_name']} '{user['username']}' {user['last_name']} запросил(-а) в долг сумму {value:,}",
+                     f"{user['first_name']} '{user['username']}' {user['last_name']} "
+                     f"запросил(-а) в долг сумму {value:,}",
                      reply_markup=keyboard_admin)
 
 
@@ -115,7 +90,8 @@ def payment_info(message, value):
 
     user = get_user(message.from_user.id)
     bot.send_message(OWNER_ID,
-                     f"{user['first_name']} '{user['username']}' {user['last_name']} уменьшил(-а) сумму долга на {value:,}",
+                     f"{user['first_name']} '{user['username']}' {user['last_name']} "
+                     f"уменьшил(-а) сумму долга на {value:,}",
                      reply_markup=keyboard_admin)
 
 
@@ -154,6 +130,32 @@ def type_username(message):
     change_user(message.from_user.id, user_info)
     bot.send_message(message.chat.id, f"Ваше имя изменено на '{message.text}'.",
                      reply_markup=keyboard_user)
+
+
+@bot.message_handler(commands=["start"])
+def start_message(message):
+    if message.from_user.id == OWNER_ID:
+        bot.send_message(message.chat.id, f"С возвращением, НурБанк!")
+        return
+
+    user = get_user(message.from_user.id)
+    if user:
+        bot.send_message(message.chat.id, f"С возвращением в НурБанк, {user['username']}!")
+        return
+
+    user_info = {
+        'user_id': message.from_user.id,
+        'first_name': message.from_user.first_name,
+        'last_name': message.from_user.last_name,
+        'username': message.from_user.username,
+    }
+    user = create_user(user_info)
+    bot.send_message(message.chat.id, f"Приветствуем вас в НурБанке, {user['username']}!",
+                     reply_markup=keyboard_user)
+
+    bot.send_message(OWNER_ID,
+                     f"Новый пользователь Нурбанка: {user['first_name']} '{user['username']}' {user['last_name']}",
+                     reply_markup=keyboard_admin)
 
 
 @bot.message_handler(content_types=["text"])

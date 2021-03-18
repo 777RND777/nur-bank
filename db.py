@@ -1,6 +1,5 @@
 from bank import client
-# TODO error log
-# TODO maybe move to main
+# TODO logger
 
 
 def get_all_users():

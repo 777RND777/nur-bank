@@ -66,8 +66,8 @@ class Application(Base):
             session.rollback()
             raise
 
-    def __repr__(self):
-        return f"By {self.author}"
+    # def __str__(self):
+    #     return f"от {self.author}"
 
 
 class User(Base):
@@ -131,5 +131,5 @@ class User(Base):
             session.rollback()
             raise
 
-    def __repr__(self):
-        return f"{self.first_name} {self.last_name}"
+    # def __repr__(self):
+    #     return f"{self.first_name} '{self.username}' {self.last_name}"

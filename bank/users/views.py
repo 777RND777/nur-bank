@@ -24,7 +24,7 @@ def get_user(user_id):
 
 @users.route("/users", methods=["POST"])
 @marshal_with(UserSchema)
-@use_kwargs(UserSchema(only=("user_id", "first_name", "last_name")))
+@use_kwargs(UserSchema(only=("user_id", "first_name", "last_name", "username")))
 def create_user(**kwargs):
     user = User(**kwargs)
     user.save()

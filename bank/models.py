@@ -80,11 +80,11 @@ class User(Base):
     debt = db.Column(db.Integer, default=0)
     applications = relationship("Application", backref="author", lazy=True)
 
-    def __init__(self, user_id, first_name, last_name):
+    def __init__(self, user_id, first_name, last_name, username):
         self.user_id = user_id
         self.first_name = first_name
         self.last_name = last_name
-        self.username = f"{first_name} {last_name}"
+        self.username = username
 
     @classmethod
     def get_list(cls):

@@ -1,5 +1,5 @@
 from datetime import datetime
-from db import *
+from db_requests import *
 from telebot import types
 import telebot
 
@@ -56,14 +56,21 @@ def get_user_full_name(first_name, username, last_name, **kwargs):
     return f"{first_name} '{username}' {last_name}"
 
 
-def get_application_info(id, value, request_date, **kwargs):
+def get_str_application_info(id, value, request_date, **kwargs):
     return f"ID: {id}\n"\
            f"Сумма: {value}\n"\
            f"Дата: {request_date}"
 
 
+def get_current_time():
+    return datetime.now().strftime("%H:%M:%S - %d/%m/%Y")
+
+
+# USER
+
+
 @bot.message_handler(func=lambda message: message.text == "оставить заявку на долг")
-def make_loan_request(message):
+def make_loan_handler(message):
     value = get_user_pending_loan_amount(message.from_user.id)
     if value == 3:
         bot.send_message(message.chat.id, f"У вас слишком много ожидающих заявок. Дождитесь ответа на предыдущие.",
@@ -71,15 +78,15 @@ def make_loan_request(message):
     else:
         msg = bot.send_message(message.chat.id, "Какую сумму вы хотите взять в долг?",
                                reply_markup=keyboard_back)
-        bot.register_next_step_handler(msg, loan_info)
+        bot.register_next_step_handler(msg, make_loan_request)
 
 
 @validation_check
-def loan_info(message, value):
+def make_loan_request(message, value):
     application = {
         'user_id': message.from_user.id,
         'value': value,
-        "request_date": datetime.now(),
+        "request_date": get_current_time(),
     }
     create_application(application)
     bot.send_message(message.chat.id, f"Ваша заявка на получение долга в размере {value:,} отправлена на рассмотрение.",
@@ -91,18 +98,18 @@ def loan_info(message, value):
 
 
 @bot.message_handler(func=lambda message: message.text == "уведомить об оплате долга")
-def make_payment_notification(message):
+def make_payment_handler(message):
     msg = bot.send_message(message.chat.id, "Какую сумму из вашего долга вы оплатили?",
                            reply_markup=keyboard_back)
-    bot.register_next_step_handler(msg, payment_info)
+    bot.register_next_step_handler(msg, make_payment_notification)
 
 
 @validation_check
-def payment_info(message, value):
+def make_payment_notification(message, value):
     application = {
         'user_id': message.from_user.id,
         'value': -value,
-        "request_date": datetime.now(),
+        "request_date": get_current_time(),
     }
     create_application(application)
     bot.send_message(message.chat.id,
@@ -134,14 +141,14 @@ def get_current_debt(message):
 
 
 @bot.message_handler(func=lambda message: message.text == "изменить имя")
-def change_username(message):
+def change_username_handler(message):
     msg = bot.send_message(message.chat.id, "Как вы хотите, чтобы к вам обращались?\n"
                                             f"Имя '{BACK}' не разрешено. Вы будете отправлены назад.",
                            reply_markup=keyboard_back)
-    bot.register_next_step_handler(msg, type_username)
+    bot.register_next_step_handler(msg, change_username)
 
 
-def type_username(message):
+def change_username(message):
     if message.text == BACK:
         bot.send_message(message.chat.id, "Вы вернулись в меню", reply_markup=keyboard_user)
         return
@@ -151,9 +158,12 @@ def type_username(message):
                      reply_markup=keyboard_user)
 
 
+# ADMIN
+
+
 @bot.message_handler(func=lambda message: message.text == "пользователи")
 @admin_verification
-def get_users():
+def show_all_profiles():
     for user in get_all_users():
         info = f"Имя: {get_user_full_name(**user)}\n" \
                f"ID: {user['user_id']}"
@@ -163,13 +173,13 @@ def get_users():
 
 @bot.message_handler(func=lambda message: message.text == "показать профиль")
 @admin_verification
-def show_profile():
+def show_profile_handler():
     msg = bot.send_message(ADMIN_ID, "Введите ID пользователя.",
                            reply_markup=keyboard_back)
-    bot.register_next_step_handler(msg, user_info)
+    bot.register_next_step_handler(msg, show_profile)
 
 
-def user_info(message):
+def show_profile(message):
     if message.text == BACK:
         bot.send_message(ADMIN_ID, "Вы вернулись в меню",
                          reply_markup=keyboard_admin)
@@ -188,7 +198,7 @@ def user_info(message):
         return
     application_history = ""
     for application in user["applications"]:
-        application_history += f"\n{get_application_info(**application)}\n"
+        application_history += f"\n{get_str_application_info(**application)}\n"
     bot.send_message(ADMIN_ID,
                      f"ID: {user['user_id']}\n"
                      f"Имя: {get_user_full_name(**user)}\n"
@@ -206,20 +216,19 @@ def show_pending_applications():
             if not application["approved"]:
                 bot.send_message(ADMIN_ID,
                                  f"Заявитель: {get_user_full_name(**user)}\n"
-                                 f"{get_application_info(**application)}",
-                                 # TODO rework datetime to str
+                                 f"{get_str_application_info(**application)}",
                                  reply_markup=keyboard_admin)
 
 
 @bot.message_handler(func=lambda message: message.text == "подтвердить заявку")
 @admin_verification
-def approve_application():
+def approve_application_handler():
     msg = bot.send_message(ADMIN_ID, "Введите ID одобренной заявки.",
                            reply_markup=keyboard_back)
-    bot.register_next_step_handler(msg, application_info)
+    bot.register_next_step_handler(msg, approve_application)
 
 
-def application_info(message):
+def approve_application(message):
     if message.text == BACK:
         bot.send_message(ADMIN_ID, "Вы вернулись в меню",
                          reply_markup=keyboard_admin)
@@ -239,7 +248,7 @@ def application_info(message):
 
     info = {
         'approved': True,
-        "answer_date": datetime.now(),
+        "answer_date": get_current_time(),
     }
     change_application(info, info)
     bot.send_message(ADMIN_ID, f"Вы одобрили заявку.",
@@ -248,7 +257,6 @@ def application_info(message):
     user = get_user(application["user_id"])
     info = {"debt": user["debt"] + application["value"]}
     change_user(user["user_id"], info)
-    # TODO fix
     bot.send_message(user["user_id"],
                      f"Ваша заявка на получение суммы в размере {application['value']:,} одобрена.\n"
                      f"Ваш общий долг составляет {user['debt']:,}.",
@@ -263,6 +271,9 @@ def count_all_debts():
         value += user["debt"]
     bot.send_message(ADMIN_ID, f"{value:,}",
                      reply_markup=keyboard_admin)
+
+
+# COMMON
 
 
 @bot.message_handler(commands=["start"])

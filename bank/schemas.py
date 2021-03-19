@@ -5,8 +5,8 @@ class ApplicationSchema(Schema):
     id = fields.Integer(dump_only=True)
     user_id = fields.Integer()
     value = fields.Integer()
-    request_date = fields.DateTime()
-    answer_date = fields.DateTime()
+    request_date = fields.String()
+    answer_date = fields.String()
     approved = fields.Boolean()
     # message = fields.String(dump_only=True)
 

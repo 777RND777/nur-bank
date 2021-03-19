@@ -7,8 +7,8 @@ class Application(Base):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.user_id"), nullable=False)
     value = db.Column(db.Integer, nullable=False)
-    request_date = db.Column(db.DateTime, nullable=False)
-    answer_date = db.Column(db.DateTime)
+    request_date = db.Column(db.String, nullable=False)
+    answer_date = db.Column(db.String)
     approved = db.Column(db.Boolean, default=False)
 
     @classmethod

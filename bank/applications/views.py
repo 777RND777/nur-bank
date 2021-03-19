@@ -36,16 +36,16 @@ def create_application(**kwargs):
 @applications.route("/applications/<int:application_id>", methods=["PUT"])
 @marshal_with(ApplicationSchema)
 @use_kwargs(ApplicationSchema)
-def update_application(user_id, application_id, **kwargs):
-    application = Application.get(user_id, application_id)
+def update_application(application_id, **kwargs):
+    application = Application.get(application_id)
     application.update(**kwargs)
     return application
 
 
 @applications.route("/applications/<int:application_id>", methods=["DELETE"])
 @marshal_with(ApplicationSchema)
-def remove_application(user_id, application_id):
-    application = Application.get(user_id, application_id)
+def remove_application(application_id):
+    application = Application.get(application_id)
     application.delete()
     return "", 204
 

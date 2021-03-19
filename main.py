@@ -52,6 +52,33 @@ def validation_check(money_func):
     return wrapper
 
 
+def application_check(application_func):
+    def wrapper(message):
+        if message.text == BACK:
+            bot.send_message(ADMIN_ID, "Вы вернулись в меню",
+                             reply_markup=keyboard_admin)
+            return
+        try:
+            application_id = int(message.text)
+        except ValueError:
+            msg = bot.send_message(ADMIN_ID, "Введите ID в числовом формате.",
+                                   reply_markup=keyboard_back)
+            bot.register_next_step_handler(msg, wrapper)
+            return
+
+        application = get_application(application_id)
+        if not application:
+            bot.send_message(ADMIN_ID, "Нет заявки с таким ID.",
+                             reply_markup=keyboard_admin)
+            return
+        if application["answer_date"]:
+            bot.send_message(ADMIN_ID, "Вы уже ответили на данную заявку.",
+                             reply_markup=keyboard_admin)
+            return
+        application_func(application)
+    return wrapper
+
+
 def get_user_full_name(first_name, username, last_name, **kwargs):
     return f"{first_name} '{username}' {last_name}"
 
@@ -237,28 +264,8 @@ def approve_application_handler():
     bot.register_next_step_handler(msg, approve_application)
 
 
-def approve_application(message):
-    if message.text == BACK:
-        bot.send_message(ADMIN_ID, "Вы вернулись в меню",
-                         reply_markup=keyboard_admin)
-        return
-    try:
-        application_id = int(message.text)
-    except ValueError:
-        bot.send_message(ADMIN_ID, "Нет заявки с таким ID.",
-                         reply_markup=keyboard_admin)
-        return
-
-    application = get_application(application_id)
-    if not application:
-        bot.send_message(ADMIN_ID, "Нет заявки с таким ID.",
-                         reply_markup=keyboard_admin)
-        return
-    if application["answer_date"]:
-        bot.send_message(ADMIN_ID, "Вы уже ответили на данную заявку.",
-                         reply_markup=keyboard_admin)
-        return
-
+@application_check
+def approve_application(application):
     info = {
         'approved': True,
         "answer_date": get_current_time(),
@@ -284,28 +291,8 @@ def decline_application_handler():
     bot.register_next_step_handler(msg, decline_application)
 
 
-def decline_application(message):
-    if message.text == BACK:
-        bot.send_message(ADMIN_ID, "Вы вернулись в меню",
-                         reply_markup=keyboard_admin)
-        return
-    try:
-        application_id = int(message.text)
-    except ValueError:
-        bot.send_message(ADMIN_ID, "Нет заявки с таким ID.",
-                         reply_markup=keyboard_admin)
-        return
-
-    application = get_application(application_id)
-    if not application:
-        bot.send_message(ADMIN_ID, "Нет заявки с таким ID.",
-                         reply_markup=keyboard_admin)
-        return
-    if application["answer_date"]:
-        bot.send_message(ADMIN_ID, "Вы уже ответили на данную заявку.",
-                         reply_markup=keyboard_admin)
-        return
-
+@application_check
+def decline_application(application):
     info = {"answer_date": get_current_time()}
     change_application(info, info)
     bot.send_message(ADMIN_ID, f"Вы отклонили заявку.",

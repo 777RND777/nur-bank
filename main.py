@@ -243,7 +243,7 @@ def show_profile(message):
 @admin_verification
 def show_pending_applications():
     users = get_all_users()
-    amount = 0
+    found = False
     for user in users:
         for application in user["applications"]:
             if not application["answer_date"]:
@@ -251,7 +251,8 @@ def show_pending_applications():
                                  f"Заявитель: {get_user_full_name(**user)}\n"
                                  f"{get_str_application_info(**application)}",
                                  reply_markup=keyboard_admin)
-    if not amount:
+                found = True
+    if not found:
         bot.send_message(ADMIN_ID, "На данный момент в базе данных нет ожидающих заявок.",
                          reply_markup=keyboard_admin)
 
@@ -270,16 +271,17 @@ def approve_application(application):
         'approved': True,
         "answer_date": get_current_time(),
     }
-    change_application(info, info)
+    change_application(application["id"], info)
     bot.send_message(ADMIN_ID, f"Вы одобрили заявку.",
                      reply_markup=keyboard_admin)
 
     user = get_user(application["user_id"])
     info = {"debt": user["debt"] + application["value"]}
     change_user(user["user_id"], info)
+    action = "получение" if application["value"] > 0 else "погашение"
     bot.send_message(user["user_id"],
-                     f"Ваша заявка на получение суммы в размере {application['value']:,} одобрена.\n"
-                     f"Ваш общий долг составляет {user['debt']:,}.",
+                     f"Ваша заявка на {action} суммы в размере {abs(application['value']):,} одобрена.\n"
+                     f"Ваш общий долг составляет {user['debt'] + application['value']:,}.",
                      reply_markup=keyboard_user)
 
 
@@ -294,13 +296,14 @@ def decline_application_handler():
 @application_check
 def decline_application(application):
     info = {"answer_date": get_current_time()}
-    change_application(info, info)
+    change_application(application["id"], info)
     bot.send_message(ADMIN_ID, f"Вы отклонили заявку.",
                      reply_markup=keyboard_admin)
 
     user = get_user(application["user_id"])
+    action = "получение" if application["value"] > 0 else "погашение"
     bot.send_message(user["user_id"],
-                     f"Ваша заявка на получение суммы в размере {application['value']:,} отклонена.\n"
+                     f"Ваша заявка на {action} суммы в размере {abs(application['value']):,} отклонена.\n"
                      f"Ваш общий долг составляет {user['debt']:,}.",
                      reply_markup=keyboard_user)
 

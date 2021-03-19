@@ -164,6 +164,11 @@ def change_username(message):
 @bot.message_handler(func=lambda message: message.text == "пользователи")
 @admin_verification
 def show_all_profiles():
+    users = get_all_users()
+    if not users:
+        bot.send_message(ADMIN_ID, "На данный момент в базе данных нет пользователей.",
+                         reply_markup=keyboard_admin)
+        return
     for user in get_all_users():
         info = f"Имя: {get_user_full_name(**user)}\n" \
                f"ID: {user['user_id']}"
@@ -211,6 +216,7 @@ def show_profile(message):
 @admin_verification
 def show_pending_applications():
     users = get_all_users()
+    amount = 0
     for user in users:
         for application in user["applications"]:
             if not application["approved"]:
@@ -218,6 +224,9 @@ def show_pending_applications():
                                  f"Заявитель: {get_user_full_name(**user)}\n"
                                  f"{get_str_application_info(**application)}",
                                  reply_markup=keyboard_admin)
+    if not amount:
+        bot.send_message(ADMIN_ID, "На данный момент в базе данных нет ожидающих заявок.",
+                         reply_markup=keyboard_admin)
 
 
 @bot.message_handler(func=lambda message: message.text == "подтвердить заявку")

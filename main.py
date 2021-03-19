@@ -16,8 +16,8 @@ keyboard_back = types.ReplyKeyboardMarkup()
 keyboard_back.add(BACK)
 keyboard_admin = types.ReplyKeyboardMarkup()
 keyboard_admin.row("пользователи", "показать профиль")
-keyboard_admin.row("ожидающие заявки", "подтвердить заявку")
-keyboard_admin.row("общая сумма в долгах")
+keyboard_admin.row("ожидающие заявки", "одобрить заявку")
+keyboard_admin.row("общая сумма в долгах", "отклонить заявку")
 
 
 def admin_verification(admin_func):
@@ -219,7 +219,7 @@ def show_pending_applications():
     amount = 0
     for user in users:
         for application in user["applications"]:
-            if not application["approved"]:
+            if not application["answer_date"]:
                 bot.send_message(ADMIN_ID,
                                  f"Заявитель: {get_user_full_name(**user)}\n"
                                  f"{get_str_application_info(**application)}",
@@ -229,7 +229,7 @@ def show_pending_applications():
                          reply_markup=keyboard_admin)
 
 
-@bot.message_handler(func=lambda message: message.text == "подтвердить заявку")
+@bot.message_handler(func=lambda message: message.text == "одобрить заявку")
 @admin_verification
 def approve_application_handler():
     msg = bot.send_message(ADMIN_ID, "Введите ID одобренной заявки.",
@@ -254,6 +254,10 @@ def approve_application(message):
         bot.send_message(ADMIN_ID, "Нет заявки с таким ID.",
                          reply_markup=keyboard_admin)
         return
+    if application["answer_date"]:
+        bot.send_message(ADMIN_ID, "Вы уже ответили на данную заявку.",
+                         reply_markup=keyboard_admin)
+        return
 
     info = {
         'approved': True,
@@ -268,6 +272,48 @@ def approve_application(message):
     change_user(user["user_id"], info)
     bot.send_message(user["user_id"],
                      f"Ваша заявка на получение суммы в размере {application['value']:,} одобрена.\n"
+                     f"Ваш общий долг составляет {user['debt']:,}.",
+                     reply_markup=keyboard_user)
+
+
+@bot.message_handler(func=lambda message: message.text == "отклонить заявку")
+@admin_verification
+def decline_application_handler():
+    msg = bot.send_message(ADMIN_ID, "Введите ID отклоненной заявки.",
+                           reply_markup=keyboard_back)
+    bot.register_next_step_handler(msg, decline_application)
+
+
+def decline_application(message):
+    if message.text == BACK:
+        bot.send_message(ADMIN_ID, "Вы вернулись в меню",
+                         reply_markup=keyboard_admin)
+        return
+    try:
+        application_id = int(message.text)
+    except ValueError:
+        bot.send_message(ADMIN_ID, "Нет заявки с таким ID.",
+                         reply_markup=keyboard_admin)
+        return
+
+    application = get_application(application_id)
+    if not application:
+        bot.send_message(ADMIN_ID, "Нет заявки с таким ID.",
+                         reply_markup=keyboard_admin)
+        return
+    if application["answer_date"]:
+        bot.send_message(ADMIN_ID, "Вы уже ответили на данную заявку.",
+                         reply_markup=keyboard_admin)
+        return
+
+    info = {"answer_date": get_current_time()}
+    change_application(info, info)
+    bot.send_message(ADMIN_ID, f"Вы отклонили заявку.",
+                     reply_markup=keyboard_admin)
+
+    user = get_user(application["user_id"])
+    bot.send_message(user["user_id"],
+                     f"Ваша заявка на получение суммы в размере {application['value']:,} отклонена.\n"
                      f"Ваш общий долг составляет {user['debt']:,}.",
                      reply_markup=keyboard_user)
 

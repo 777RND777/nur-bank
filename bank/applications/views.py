@@ -25,10 +25,9 @@ def get_application(application_id):
 
 @applications.route("/applications", methods=["POST"])
 @marshal_with(ApplicationSchema)
-@use_kwargs(ApplicationSchema(only=("user_id", "value")))
+@use_kwargs(ApplicationSchema(only=("user_id", "value", "request_date")))
 def create_application(**kwargs):
-    request_date = datetime.now()
-    application = Application(request_date=request_date, **kwargs)
+    application = Application(**kwargs)
     application.save()
     return application
 

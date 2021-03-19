@@ -16,6 +16,13 @@ def get_application_list():
     return application_list
 
 
+@applications.route("/applications/<int:application_id>", methods=["GET"])
+@marshal_with(ApplicationSchema)
+def get_application(application_id):
+    application_list = Application.get(application_id)
+    return application_list
+
+
 @applications.route("/applications", methods=["POST"])
 @marshal_with(ApplicationSchema)
 @use_kwargs(ApplicationSchema(only=("user_id", "value")))
@@ -26,7 +33,7 @@ def create_application(**kwargs):
     return application
 
 
-@applications.route("/users/<int:user_id>/applications/<int:application_id>", methods=["PUT"])
+@applications.route("/applications/<int:application_id>", methods=["PUT"])
 @marshal_with(ApplicationSchema)
 @use_kwargs(ApplicationSchema)
 def update_application(user_id, application_id, **kwargs):
@@ -35,7 +42,7 @@ def update_application(user_id, application_id, **kwargs):
     return application
 
 
-@applications.route("/users/<int:user_id>/applications/<int:application_id>", methods=["DELETE"])
+@applications.route("/applications/<int:application_id>", methods=["DELETE"])
 @marshal_with(ApplicationSchema)
 def remove_application(user_id, application_id):
     application = Application.get(user_id, application_id)

@@ -32,9 +32,9 @@ class Application(Base):
             raise
 
     @classmethod
-    def get(cls, user_id, application_id):
+    def get(cls, application_id):
         try:
-            user = cls.query.filter(cls.user_id == user_id, cls.id == application_id).first()
+            user = cls.query.filter(cls.id == application_id).first()
             session.commit()
             return user
         except Exception:

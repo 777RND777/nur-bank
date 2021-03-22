@@ -1,13 +1,11 @@
+from config import *
 from datetime import datetime
 from db_requests import *
 from telebot import types
 import telebot
 
 
-BACK = "назад"
-WRONG_COMMAND = "Вы неправильно ввели команду."
-ADMIN_ID = 287100650
-bot = telebot.TeleBot("990303016:AAEQfd5PnZsjgitwo0HvcLVLMQty47JI_WU")
+bot = telebot.TeleBot(TOKEN)
 
 keyboard_user = types.ReplyKeyboardMarkup()
 keyboard_user.row("оставить заявку на долг", "уведомить об оплате долга")

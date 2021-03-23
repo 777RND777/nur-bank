@@ -1,4 +1,4 @@
-TOKEN = "990303016:AAEQfd5PnZsjgitwo0HvcLVLMQty47JI_WU"
+TOKEN = "TELEGRAM_TOKEN"
 BACK = "назад"
 WRONG_COMMAND = "Вы неправильно ввели команду."
-ADMIN_ID = 287100650
+ADMIN_ID = int("ADMIN TELEGRAM ID")

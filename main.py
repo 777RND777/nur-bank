@@ -77,6 +77,28 @@ def application_check(application_func):
     return wrapper
 
 
+def user_check(user_func):
+    def wrapper(message):
+        if message.text == BACK:
+            bot.send_message(ADMIN_ID, "Вы вернулись в меню",
+                             reply_markup=keyboard_admin)
+            return
+        try:
+            user_id = int(message.text)
+        except ValueError:
+            bot.send_message(ADMIN_ID, "Нет пользователя с таким ID.",
+                             reply_markup=keyboard_admin)
+            return
+
+        user = get_user(user_id)
+        if not user:
+            bot.send_message(ADMIN_ID, "Нет пользователя с таким ID.",
+                             reply_markup=keyboard_admin)
+            return
+        user_func(user)
+    return wrapper
+
+
 def get_user_full_name(first_name, username, last_name, **kwargs):
     return f"{first_name} '{username}' {last_name}"
 
@@ -209,23 +231,8 @@ def show_profile_handler():
     bot.register_next_step_handler(msg, show_profile)
 
 
-def show_profile(message):
-    if message.text == BACK:
-        bot.send_message(ADMIN_ID, "Вы вернулись в меню",
-                         reply_markup=keyboard_admin)
-        return
-    try:
-        user_id = int(message.text)
-    except ValueError:
-        bot.send_message(ADMIN_ID, "Нет пользователя с таким ID.",
-                         reply_markup=keyboard_admin)
-        return
-
-    user = get_user(user_id)
-    if not user:
-        bot.send_message(ADMIN_ID, "Нет пользователя с таким ID.",
-                         reply_markup=keyboard_admin)
-        return
+@user_check
+def show_profile(user):
     application_history = ""
     for application in user["applications"]:
         application_history += f"\n{get_str_application_info(**application)}\n"

@@ -20,7 +20,7 @@ def create_user(user: dict) -> dict:
     return c.get_json()
 
 
-def change_user(user_id: int, json: dict) -> dict:
+def change_user(user_id: int, json: dict):
     _ = client.put(f"/users/{user_id}", json=json)
 
 

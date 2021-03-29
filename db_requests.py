@@ -2,17 +2,17 @@ from bank import client
 # TODO logger
 
 
-def get_all_users():
+def get_all_users() -> dict:
     c = client.get("/users")
     return c.get_json()
 
 
-def get_user(user_id):
+def get_user(user_id: int) -> dict:
     c = client.get(f"/users/{user_id}")
     return c.get_json()
 
 
-def create_user(user):
+def create_user(user: dict) -> dict:
     for key, value in user.items():
         if not value:
             user[key] = ""
@@ -20,29 +20,29 @@ def create_user(user):
     return c.get_json()
 
 
-def change_user(user_id, json):
+def change_user(user_id: int, json: dict) -> dict:
     _ = client.put(f"/users/{user_id}", json=json)
 
 
-def get_all_applications():
+def get_all_applications() -> dict:
     c = client.get(f"/applications")
     return c.get_json()
 
 
-def get_application(application_id):
+def get_application(application_id: int) -> dict:
     c = client.get(f"/applications/{application_id}")
     return c.get_json()
 
 
-def create_application(json):
+def create_application(json: dict):
     _ = client.post("/applications", json=json)
 
 
-def change_application(application_id, json):
+def change_application(application_id: int, json: dict):
     _ = client.put(f"/applications/{application_id}", json=json)
 
 
-def get_user_pending_loans(user_id):
+def get_user_pending_loans(user_id: int) -> int:
     c = client.get(f"/users/{user_id}")
     value = 0
     for application in c.get_json()["applications"]:
@@ -51,7 +51,7 @@ def get_user_pending_loans(user_id):
     return value
 
 
-def get_user_pending_payments(user_id):
+def get_user_pending_payments(user_id: int) -> int:
     c = client.get(f"/users/{user_id}")
     value = 0
     for application in c.get_json()["applications"]:
@@ -60,7 +60,7 @@ def get_user_pending_payments(user_id):
     return value
 
 
-def get_user_pending_loan_amount(user_id):
+def get_user_pending_loan_amount(user_id: int) -> int:
     c = client.get(f"/users/{user_id}")
     amount = 0
     for application in c.get_json()["applications"]:

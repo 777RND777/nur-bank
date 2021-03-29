@@ -11,16 +11,16 @@ applications = Blueprint("applications", __name__)
 
 @applications.route("/applications", methods=["GET"])
 @marshal_with(ApplicationSchema(many=True))
-def get_application_list():
+def get_application_list() -> list:
     application_list = Application.get_list()
     return application_list
 
 
 @applications.route("/applications/<int:application_id>", methods=["GET"])
 @marshal_with(ApplicationSchema)
-def get_application(application_id):
-    application_list = Application.get(application_id)
-    return application_list
+def get_application(application_id: int):
+    application = Application.get(application_id)
+    return application
 
 
 @applications.route("/applications", methods=["POST"])
@@ -35,7 +35,7 @@ def create_application(**kwargs):
 @applications.route("/applications/<int:application_id>", methods=["PUT"])
 @marshal_with(ApplicationSchema)
 @use_kwargs(ApplicationSchema)
-def update_application(application_id, **kwargs):
+def update_application(application_id: int, **kwargs):
     application = Application.get(application_id)
     application.update(**kwargs)
     return application
@@ -43,7 +43,7 @@ def update_application(application_id, **kwargs):
 
 @applications.route("/applications/<int:application_id>", methods=["DELETE"])
 @marshal_with(ApplicationSchema)
-def remove_application(application_id):
+def remove_application(application_id: int) -> (str, int):
     application = Application.get(application_id)
     application.delete()
     return "", 204

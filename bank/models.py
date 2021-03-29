@@ -22,7 +22,7 @@ class Application(Base):
             raise
 
     @classmethod
-    def get_user_list(cls, user_id):
+    def get_user_list(cls, user_id: int):
         try:
             applications = cls.query.filter(cls.user_id == user_id).all()
             session.commit()
@@ -32,7 +32,7 @@ class Application(Base):
             raise
 
     @classmethod
-    def get(cls, application_id):
+    def get(cls, application_id: int):
         try:
             user = cls.query.filter(cls.id == application_id).first()
             session.commit()
@@ -77,7 +77,7 @@ class User(Base):
     debt = db.Column(db.Integer, default=0)
     applications = relationship("Application", backref="author", lazy=True)
 
-    def __init__(self, user_id, first_name, last_name, username):
+    def __init__(self, user_id: int, first_name: str, last_name: str, username: str):
         self.user_id = user_id
         self.first_name = first_name
         self.last_name = last_name
@@ -94,7 +94,7 @@ class User(Base):
             raise
 
     @classmethod
-    def get(cls, user_id):
+    def get(cls, user_id: int):
         try:
             user = cls.query.filter(cls.user_id == user_id).first()
             session.commit()

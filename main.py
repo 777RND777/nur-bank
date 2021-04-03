@@ -5,7 +5,7 @@ from telebot import types
 import telebot
 
 
-bot = telebot.TeleBot(TOKEN)
+bot = telebot.TeleBot(TELEGRAM_TOKEN)
 
 keyboard_user = types.ReplyKeyboardMarkup()
 keyboard_user.row("оставить заявку на долг", "уведомить об оплате долга")

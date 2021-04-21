@@ -34,8 +34,9 @@ def get_application(application_id: int) -> dict:
     return c.get_json()
 
 
-def create_application(json: dict):
-    _ = client.post("/applications", json=json)
+def create_application(json: dict) -> dict:
+    c = client.post("/applications", json=json)
+    return c.get_json()
 
 
 def change_application(application_id: int, json: dict):

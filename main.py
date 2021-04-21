@@ -13,8 +13,8 @@ keyboard_user.row("посмотреть сумму долга", "изменит�
 keyboard_back = types.ReplyKeyboardMarkup()
 keyboard_back.add(BACK)
 keyboard_admin = types.ReplyKeyboardMarkup()
-keyboard_admin.row("пользователи", "показать профиль")
-keyboard_admin.row("ожидающие заявки", "общая сумма в долгах")
+keyboard_admin.row("пользователи", "ожидающие заявки")
+keyboard_admin.row("общая сумма в долгах")
 
 
 def admin_verification(admin_func):
@@ -26,7 +26,7 @@ def admin_verification(admin_func):
     return wrapper
 
 
-def admin_verification_for_application(admin_func):
+def admin_middle_verification(admin_func):
     def wrapper(message):
         if message.from_user.id != ADMIN_ID:
             bot.send_message(message.from_user.id, WRONG_COMMAND)
@@ -76,17 +76,7 @@ def application_check(application_func):
 
 def user_check(user_func):
     def wrapper(message):
-        if message.text == BACK:
-            bot.send_message(ADMIN_ID, "Вы вернулись в меню",
-                             reply_markup=keyboard_admin)
-            return
-        try:
-            user_id = int(message.text)
-        except ValueError:
-            bot.send_message(ADMIN_ID, "Нет пользователя с таким ID.",
-                             reply_markup=keyboard_admin)
-            return
-
+        user_id = int(message.text[8:])
         user = get_user(user_id)
         if not user:
             bot.send_message(ADMIN_ID, "Нет пользователя с таким ID.",
@@ -219,19 +209,14 @@ def show_all_profiles():
         return
     for user in get_all_users():
         info = f"Имя: {get_user_full_name(**user)}\n" \
-               f"ID: {user['user_id']}"
+               f"ID: {user['user_id']}\n" \
+               f"/profile{user['user_id']}"
         bot.send_message(ADMIN_ID, info,
                          reply_markup=keyboard_admin)
 
 
-@bot.message_handler(func=lambda message: message.text == "показать профиль")
-@admin_verification
-def show_profile_handler():
-    msg = bot.send_message(ADMIN_ID, "Введите ID пользователя.",
-                           reply_markup=keyboard_back)
-    bot.register_next_step_handler(msg, show_profile)
-
-
+@bot.message_handler(func=lambda message: message.text.startswith("/profile"))
+@admin_middle_verification
 @user_check
 def show_profile(user: dict):
     application_history = ""
@@ -266,7 +251,7 @@ def show_pending_applications():
 
 
 @bot.message_handler(func=lambda message: message.text.startswith("/approve"))
-@admin_verification_for_application
+@admin_middle_verification
 @application_check
 def approve_application(application: dict):
     info = {
@@ -288,7 +273,7 @@ def approve_application(application: dict):
 
 
 @bot.message_handler(func=lambda message: message.text.startswith("/decline"))
-@admin_verification_for_application
+@admin_middle_verification
 @application_check
 def decline_application(application: dict):
     info = {"answer_date": get_current_time()}

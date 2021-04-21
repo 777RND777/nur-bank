@@ -26,6 +26,15 @@ def admin_verification(admin_func):
     return wrapper
 
 
+def admin_verification_for_application(admin_func):
+    def wrapper(message):
+        if message.from_user.id != ADMIN_ID:
+            bot.send_message(message.from_user.id, WRONG_COMMAND)
+            return
+        admin_func(message)
+    return wrapper
+
+
 def validation_check(money_func):
     def wrapper(message):
         value = message.text
@@ -128,7 +137,7 @@ def make_loan_request(message: types.Message, value: int):
                      reply_markup=keyboard_user)
 
     user = get_user(message.from_user.id)
-    bot.send_message(ADMIN_ID, f"{get_user_full_name(**user)} запросил(-а) в долг сумму {value:,}"
+    bot.send_message(ADMIN_ID, f"{get_user_full_name(**user)} запросил(-а) в долг сумму {value:,}\n"
                                f"Одобрить:  /approve{application['id']}\n"
                                f"Отклонить: /decline{application['id']}",
                      reply_markup=keyboard_admin)
@@ -257,7 +266,7 @@ def show_pending_applications():
 
 
 @bot.message_handler(func=lambda message: message.text.startswith("/approve"))
-@admin_verification
+@admin_verification_for_application
 @application_check
 def approve_application(application: dict):
     info = {
@@ -279,7 +288,7 @@ def approve_application(application: dict):
 
 
 @bot.message_handler(func=lambda message: message.text.startswith("/decline"))
-@admin_verification
+@admin_verification_for_application
 @application_check
 def decline_application(application: dict):
     info = {"answer_date": get_current_time()}

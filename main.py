@@ -42,19 +42,26 @@ def validation_check(money_func):
             bot.send_message(message.chat.id, "Вы вернулись в меню",
                              reply_markup=keyboard_user)
             return
-        elif value.endswith("к") or value.endswith("k"):
+        if value.endswith("к") or value.endswith("k"):
             value = value[:-1] + "000"
         elif len(value) < 4 or not value.endswith("000"):
             value = value + "000"
         try:
             value = int(value)
-            money_func(message, value)
         except ValueError:
             msg = bot.send_message(message.chat.id,
                                    "Вы неправильно ввели сумму.\n"
                                    "Правильные примеры: '5000' / '5' / '5к'.",
                                    reply_markup=keyboard_back)
             bot.register_next_step_handler(msg, wrapper)
+            return
+        if value > 5000000:
+            msg = bot.send_message(message.chat.id,
+                                   "Вы запросили слишком большую сумму.",
+                                   reply_markup=keyboard_back)
+            bot.register_next_step_handler(msg, wrapper)
+            return
+        money_func(message, value)
     return wrapper
 
 

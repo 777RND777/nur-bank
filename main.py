@@ -1,6 +1,6 @@
 from config import *
-from datetime import datetime
 from db_requests import *
+from helpers import *
 from telebot import types
 import telebot
 
@@ -15,6 +15,9 @@ keyboard_back.add(BACK)
 keyboard_admin = types.ReplyKeyboardMarkup()
 keyboard_admin.row("пользователи", "ожидающие заявки")
 keyboard_admin.row("напомнить о долге", "общая сумма в долгах")
+
+
+# DECORATORS
 
 
 def admin_verification(admin_func):
@@ -70,6 +73,19 @@ def validation_check(money_func):
     return wrapper
 
 
+def user_check(user_func):
+    def wrapper(message):
+        user_id = int(message.text[8:])
+        user = get_user(user_id)
+        if not user:
+            bot.send_message(ADMIN_ID,
+                             "Нет пользователя с таким ID.",
+                             reply_markup=keyboard_admin)
+            return
+        user_func(user)
+    return wrapper
+
+
 def application_check(application_func):
     def wrapper(message):
         application_id = int(message.text[8:])
@@ -86,33 +102,6 @@ def application_check(application_func):
             return
         application_func(application)
     return wrapper
-
-
-def user_check(user_func):
-    def wrapper(message):
-        user_id = int(message.text[8:])
-        user = get_user(user_id)
-        if not user:
-            bot.send_message(ADMIN_ID,
-                             "Нет пользователя с таким ID.",
-                             reply_markup=keyboard_admin)
-            return
-        user_func(user)
-    return wrapper
-
-
-def get_user_full_name(first_name: str, username: str, last_name: str, **kwargs) -> str:
-    return f"{first_name} '{username}' {last_name}"
-
-
-def get_str_application_info(id: int, value: int, request_date: str, **kwargs) -> str:
-    return f"ID: {id}\n"\
-           f"Сумма: {value}\n"\
-           f"Дата: {request_date}"
-
-
-def get_current_time() -> str:
-    return datetime.now().strftime("%H:%M:%S - %d/%m/%Y")
 
 
 # USER
@@ -252,7 +241,7 @@ def show_all_profiles():
 def show_profile(user: dict):
     application_history = ""
     for i, application in enumerate(user["applications"][::-1]):
-        application_history += f"\n{get_str_application_info(**application)}\n"
+        application_history += f"\n{get_application_info(**application)}\n"
         if i == 4:
             break
     bot.send_message(ADMIN_ID,
@@ -274,7 +263,7 @@ def show_pending_applications():
             if not application["answer_date"]:
                 bot.send_message(ADMIN_ID,
                                  f"Заявитель: {get_user_full_name(**user)}\n"
-                                 f"{get_str_application_info(**application)}\n"
+                                 f"{get_application_info(**application)}\n"
                                  f"Одобрить:  /approve{application['id']}\n"
                                  f"Отклонить: /decline{application['id']}",
                                  reply_markup=keyboard_admin)
@@ -326,16 +315,6 @@ def decline_application(application: dict):
                      reply_markup=keyboard_user)
 
 
-@bot.message_handler(func=lambda message: message.text.startswith("/remind_"))
-@admin_middle_verification
-@user_check
-def remind_user(user: dict):
-    send_remind(**user)
-    bot.send_message(ADMIN_ID,
-                     "Напоминание было отправлено",
-                     reply_markup=keyboard_admin)
-
-
 @bot.message_handler(func=lambda message: message.text == "напомнить о долге")
 @admin_verification
 def remind_all_users():
@@ -343,6 +322,16 @@ def remind_all_users():
         send_remind(**user)
     bot.send_message(ADMIN_ID,
                      "Напоминания было отправлены",
+                     reply_markup=keyboard_admin)
+
+
+@bot.message_handler(func=lambda message: message.text.startswith("/remind_"))
+@admin_middle_verification
+@user_check
+def remind_user(user: dict):
+    send_remind(**user)
+    bot.send_message(ADMIN_ID,
+                     "Напоминание было отправлено",
                      reply_markup=keyboard_admin)
 
 
@@ -356,7 +345,7 @@ def send_remind(user_id: int, debt: int, **kwargs):
 
 @bot.message_handler(func=lambda message: message.text == "общая сумма в долгах")
 @admin_verification
-def count_all_debts():
+def count_debts():
     value = 0
     for user in get_all_users():
         value += user["debt"]

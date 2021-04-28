@@ -242,8 +242,7 @@ def show_all_profiles():
     for user in get_all_users():
         bot.send_message(ADMIN_ID,
                          f"Имя: {get_user_full_name(**user)}\n"
-                         f"ID: {user['user_id']}\n"
-                         f"/profile{user['user_id']}",
+                         f"Профиль: /profile{user['user_id']}",
                          reply_markup=keyboard_admin)
 
 
@@ -252,13 +251,16 @@ def show_all_profiles():
 @user_check
 def show_profile(user: dict):
     application_history = ""
-    for application in user["applications"]:
+    for i, application in enumerate(user["applications"][::-1]):
         application_history += f"\n{get_str_application_info(**application)}\n"
+        if i == 4:
+            break
     bot.send_message(ADMIN_ID,
-                     f"ID: {user['user_id']}\n"
                      f"Имя: {get_user_full_name(**user)}\n"
-                     f"Долг: {user['debt']}\n\n"
-                     f"История обращений: {application_history}",
+                     f"ID: {user['user_id']}\n"
+                     f"Долг: {user['debt']}\n"
+                     f"Напомнить: /remind_{user['user_id']}\n\n"
+                     f"Последние обращения: {application_history}",
                      reply_markup=keyboard_admin)
 
 
@@ -324,15 +326,32 @@ def decline_application(application: dict):
                      reply_markup=keyboard_user)
 
 
+@bot.message_handler(func=lambda message: message.text.startswith("/remind_"))
+@admin_middle_verification
+@user_check
+def remind_user(user: dict):
+    send_remind(**user)
+    bot.send_message(ADMIN_ID,
+                     "Напоминание было отправлено",
+                     reply_markup=keyboard_admin)
+
+
 @bot.message_handler(func=lambda message: message.text == "напомнить о долге")
 @admin_verification
-def remind_users():
+def remind_all_users():
     for user in get_all_users():
-        if user["debt"] > 0:
-            bot.send_message(user['user_id'],
-                             f"Напоминание о долге!\n"
-                             f"Ваш общий долг состовляет {user['debt']:,}.",
-                             reply_markup=keyboard_admin)
+        send_remind(**user)
+    bot.send_message(ADMIN_ID,
+                     "Напоминания было отправлены",
+                     reply_markup=keyboard_admin)
+
+
+def send_remind(user_id: int, debt: int, **kwargs):
+    if debt > 0:
+        bot.send_message(user_id,
+                         f"Напоминание о долге!\n"
+                         f"Ваш общий долг состовляет {debt:,}.",
+                         reply_markup=keyboard_admin)
 
 
 @bot.message_handler(func=lambda message: message.text == "общая сумма в долгах")

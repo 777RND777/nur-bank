@@ -14,7 +14,7 @@ keyboard_back = types.ReplyKeyboardMarkup()
 keyboard_back.add(BACK)
 keyboard_admin = types.ReplyKeyboardMarkup()
 keyboard_admin.row("пользователи", "ожидающие заявки")
-keyboard_admin.row("общая сумма в долгах")
+keyboard_admin.row("напомнить о долге", "общая сумма в долгах")
 
 
 def admin_verification(admin_func):
@@ -322,6 +322,17 @@ def decline_application(application: dict):
                      f"Ваша заявка на {action} суммы в размере {abs(application['value']):,} отклонена.\n"
                      f"Ваш общий долг составляет {user['debt']:,}.",
                      reply_markup=keyboard_user)
+
+
+@bot.message_handler(func=lambda message: message.text == "напомнить о долге")
+@admin_verification
+def remind_users():
+    for user in get_all_users():
+        if user["debt"] > 0:
+            bot.send_message(user['user_id'],
+                             f"Напоминание о долге!\n"
+                             f"Ваш общий долг состовляет {user['debt']:,}.",
+                             reply_markup=keyboard_admin)
 
 
 @bot.message_handler(func=lambda message: message.text == "общая сумма в долгах")

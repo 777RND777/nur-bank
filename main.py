@@ -20,7 +20,9 @@ keyboard_admin.row("общая сумма в долгах")
 def admin_verification(admin_func):
     def wrapper(message):
         if message.from_user.id != ADMIN_ID:
-            bot.send_message(message.from_user.id, WRONG_COMMAND)
+            bot.send_message(message.from_user.id,
+                             WRONG_COMMAND,
+                             reply_markup=keyboard_admin)
             return
         admin_func()
     return wrapper
@@ -29,7 +31,9 @@ def admin_verification(admin_func):
 def admin_middle_verification(admin_func):
     def wrapper(message):
         if message.from_user.id != ADMIN_ID:
-            bot.send_message(message.from_user.id, WRONG_COMMAND)
+            bot.send_message(message.from_user.id,
+                             WRONG_COMMAND,
+                             reply_markup=keyboard_admin)
             return
         admin_func(message)
     return wrapper
@@ -39,7 +43,8 @@ def validation_check(money_func):
     def wrapper(message):
         value = message.text
         if value == BACK:
-            bot.send_message(message.chat.id, "Вы вернулись в меню",
+            bot.send_message(message.chat.id,
+                             "Вы вернулись в меню",
                              reply_markup=keyboard_user)
             return
         if value.endswith("к") or value.endswith("k"):
@@ -70,11 +75,13 @@ def application_check(application_func):
         application_id = int(message.text[8:])
         application = get_application(application_id)
         if not application:
-            bot.send_message(ADMIN_ID, "Нет заявки с таким ID.",
+            bot.send_message(ADMIN_ID,
+                             "Нет заявки с таким ID.",
                              reply_markup=keyboard_admin)
             return
         if application["answer_date"]:
-            bot.send_message(ADMIN_ID, "Вы уже ответили на данную заявку.",
+            bot.send_message(ADMIN_ID,
+                             "Вы уже ответили на данную заявку.",
                              reply_markup=keyboard_admin)
             return
         application_func(application)
@@ -86,7 +93,8 @@ def user_check(user_func):
         user_id = int(message.text[8:])
         user = get_user(user_id)
         if not user:
-            bot.send_message(ADMIN_ID, "Нет пользователя с таким ID.",
+            bot.send_message(ADMIN_ID,
+                             "Нет пользователя с таким ID.",
                              reply_markup=keyboard_admin)
             return
         user_func(user)
@@ -114,10 +122,12 @@ def get_current_time() -> str:
 def make_loan_handler(message: types.Message):
     value = get_user_pending_loan_amount(message.from_user.id)
     if value == 3:
-        bot.send_message(message.chat.id, f"У вас слишком много ожидающих заявок. Дождитесь ответа на предыдущие.",
+        bot.send_message(message.chat.id,
+                         f"У вас слишком много ожидающих заявок. Дождитесь ответа на предыдущие.",
                          reply_markup=keyboard_user)
     else:
-        msg = bot.send_message(message.chat.id, "Какую сумму вы хотите взять в долг?",
+        msg = bot.send_message(message.chat.id,
+                               "Какую сумму вы хотите взять в долг?",
                                reply_markup=keyboard_back)
         bot.register_next_step_handler(msg, make_loan_request)
 
@@ -130,19 +140,22 @@ def make_loan_request(message: types.Message, value: int):
         "request_date": get_current_time(),
     }
     application = create_application(application)
-    bot.send_message(message.chat.id, f"Ваша заявка на получение долга в размере {value:,} отправлена на рассмотрение.",
+    bot.send_message(message.chat.id,
+                     f"Ваша заявка на получение долга в размере {value:,} отправлена на рассмотрение.",
                      reply_markup=keyboard_user)
 
     user = get_user(message.from_user.id)
-    bot.send_message(ADMIN_ID, f"{get_user_full_name(**user)} запросил(-а) в долг сумму {value:,}\n"
-                               f"Одобрить:  /approve{application['id']}\n"
-                               f"Отклонить: /decline{application['id']}",
+    bot.send_message(ADMIN_ID,
+                     f"{get_user_full_name(**user)} запросил(-а) в долг сумму {value:,}\n"
+                     f"Одобрить:  /approve{application['id']}\n"
+                     f"Отклонить: /decline{application['id']}",
                      reply_markup=keyboard_admin)
 
 
 @bot.message_handler(func=lambda message: message.text == "уведомить об оплате долга")
 def make_payment_handler(message: types.Message):
-    msg = bot.send_message(message.chat.id, "Какую сумму из вашего долга вы оплатили?",
+    msg = bot.send_message(message.chat.id,
+                           "Какую сумму из вашего долга вы оплатили?",
                            reply_markup=keyboard_back)
     bot.register_next_step_handler(msg, make_payment_notification)
 
@@ -160,9 +173,10 @@ def make_payment_notification(message: types.Message, value):
                      reply_markup=keyboard_user)
 
     user = get_user(message.from_user.id)
-    bot.send_message(ADMIN_ID, f"{get_user_full_name(**user)} уменьшил(-а) сумму долга на {value:,}\n"
-                               f"Одобрить:  /approve{application['id']}\n"
-                               f"Отклонить: /decline{application['id']}",
+    bot.send_message(ADMIN_ID,
+                     f"{get_user_full_name(**user)} уменьшил(-а) сумму долга на {value:,}\n"
+                     f"Одобрить:  /approve{application['id']}\n"
+                     f"Отклонить: /decline{application['id']}",
                      reply_markup=keyboard_admin)
 
 
@@ -170,36 +184,46 @@ def make_payment_notification(message: types.Message, value):
 def get_current_debt(message: types.Message):
     user = get_user(message.from_user.id)
     if not user['debt']:
-        bot.send_message(message.chat.id, "У вас нет активных долгов.",
+        bot.send_message(message.chat.id,
+                         "У вас нет активных долгов.",
                          reply_markup=keyboard_user)
     else:
-        bot.send_message(message.chat.id, f"Сумма долга: {user['debt']:,}.",
+        bot.send_message(message.chat.id,
+                         f"Сумма долга: {user['debt']:,}.",
                          reply_markup=keyboard_user)
 
     value = get_user_pending_loans(message.from_user.id)
     if value > 0:
-        bot.send_message(message.chat.id, f"Сумма в долг на рассмотрении: {value:,}.")
+        bot.send_message(message.chat.id,
+                         f"Сумма в долг на рассмотрении: {value:,}.",
+                         reply_markup=keyboard_user)
 
     value = get_user_pending_payments(message.from_user.id)
     if value > 0:
-        bot.send_message(message.chat.id, f"Оплаченная сумма на рассмотрении: {value:,}.")
+        bot.send_message(message.chat.id,
+                         f"Оплаченная сумма на рассмотрении: {value:,}.",
+                         reply_markup=keyboard_user)
 
 
 @bot.message_handler(func=lambda message: message.text == "изменить имя")
 def change_username_handler(message: types.Message):
-    msg = bot.send_message(message.chat.id, "Как вы хотите, чтобы к вам обращались?\n"
-                                            f"Имя '{BACK}' не разрешено. Вы будете отправлены назад.",
+    msg = bot.send_message(message.chat.id,
+                           "Как вы хотите, чтобы к вам обращались?\n"
+                           f"Имя '{BACK}' не разрешено. Вы будете отправлены назад.",
                            reply_markup=keyboard_back)
     bot.register_next_step_handler(msg, change_username)
 
 
 def change_username(message: types.Message):
     if message.text == BACK:
-        bot.send_message(message.chat.id, "Вы вернулись в меню", reply_markup=keyboard_user)
+        bot.send_message(message.chat.id,
+                         "Вы вернулись в меню",
+                         reply_markup=keyboard_user)
         return
     info = {'username': message.text}
     change_user(message.from_user.id, info)
-    bot.send_message(message.chat.id, f"Ваше имя изменено на '{message.text}'.",
+    bot.send_message(message.chat.id,
+                     f"Ваше имя изменено на '{message.text}'.",
                      reply_markup=keyboard_user)
 
 
@@ -211,14 +235,15 @@ def change_username(message: types.Message):
 def show_all_profiles():
     users = get_all_users()
     if not users:
-        bot.send_message(ADMIN_ID, "На данный момент в базе данных нет пользователей.",
+        bot.send_message(ADMIN_ID,
+                         "На данный момент в базе данных нет пользователей.",
                          reply_markup=keyboard_admin)
         return
     for user in get_all_users():
-        info = f"Имя: {get_user_full_name(**user)}\n" \
-               f"ID: {user['user_id']}\n" \
-               f"/profile{user['user_id']}"
-        bot.send_message(ADMIN_ID, info,
+        bot.send_message(ADMIN_ID,
+                         f"Имя: {get_user_full_name(**user)}\n"
+                         f"ID: {user['user_id']}\n"
+                         f"/profile{user['user_id']}",
                          reply_markup=keyboard_admin)
 
 
@@ -253,7 +278,8 @@ def show_pending_applications():
                                  reply_markup=keyboard_admin)
                 found = True
     if not found:
-        bot.send_message(ADMIN_ID, "На данный момент в базе данных нет ожидающих заявок.",
+        bot.send_message(ADMIN_ID,
+                         "На данный момент в базе данных нет ожидающих заявок.",
                          reply_markup=keyboard_admin)
 
 
@@ -266,7 +292,8 @@ def approve_application(application: dict):
         "answer_date": get_current_time(),
     }
     change_application(application["id"], info)
-    bot.send_message(ADMIN_ID, f"Вы одобрили заявку.",
+    bot.send_message(ADMIN_ID,
+                     f"Вы одобрили заявку.",
                      reply_markup=keyboard_admin)
 
     user = get_user(application["user_id"])
@@ -285,7 +312,8 @@ def approve_application(application: dict):
 def decline_application(application: dict):
     info = {"answer_date": get_current_time()}
     change_application(application["id"], info)
-    bot.send_message(ADMIN_ID, f"Вы отклонили заявку.",
+    bot.send_message(ADMIN_ID,
+                     f"Вы отклонили заявку.",
                      reply_markup=keyboard_admin)
 
     user = get_user(application["user_id"])
@@ -302,7 +330,8 @@ def count_all_debts():
     value = 0
     for user in get_all_users():
         value += user["debt"]
-    bot.send_message(ADMIN_ID, f"{value:,}",
+    bot.send_message(ADMIN_ID,
+                     f"Общая сумма в долгах: {value:,}.",
                      reply_markup=keyboard_admin)
 
 
@@ -312,12 +341,16 @@ def count_all_debts():
 @bot.message_handler(commands=["start"])
 def start_message(message: types.Message):
     if message.from_user.id == ADMIN_ID:
-        bot.send_message(message.chat.id, f"С возвращением, НурБанк!")
+        bot.send_message(message.chat.id,
+                         f"С возвращением, НурБанк!",
+                         reply_markup=keyboard_admin)
         return
 
     user = get_user(message.from_user.id)
     if user:
-        bot.send_message(message.chat.id, f"С возвращением в НурБанк, {user['username']}!")
+        bot.send_message(message.chat.id,
+                         f"С возвращением в НурБанк, {user['username']}!",
+                         reply_markup=keyboard_user)
         return
 
     user_info = {
@@ -327,7 +360,8 @@ def start_message(message: types.Message):
         'username': message.from_user.username,
     }
     user = create_user(user_info)
-    bot.send_message(message.chat.id, f"Приветствуем вас в НурБанке, {user['username']}!",
+    bot.send_message(message.chat.id,
+                     f"Приветствуем вас в НурБанке, {user['username']}!",
                      reply_markup=keyboard_user)
 
     bot.send_message(ADMIN_ID,
@@ -338,10 +372,12 @@ def start_message(message: types.Message):
 @bot.message_handler(content_types=["text"])
 def send_text(message: types.Message):
     if message.from_user.id == ADMIN_ID:
-        bot.send_message(ADMIN_ID, WRONG_COMMAND,
+        bot.send_message(ADMIN_ID,
+                         WRONG_COMMAND,
                          reply_markup=keyboard_admin)
     else:
-        bot.send_message(message.chat.id, WRONG_COMMAND,
+        bot.send_message(message.chat.id,
+                         WRONG_COMMAND,
                          reply_markup=keyboard_user)
 
 

@@ -27,17 +27,6 @@ def admin_verification(admin_func):
                              WRONG_COMMAND,
                              reply_markup=keyboard_admin)
             return
-        admin_func()
-    return wrapper
-
-
-def admin_middle_verification(admin_func):
-    def wrapper(message):
-        if message.from_user.id != ADMIN_ID:
-            bot.send_message(message.from_user.id,
-                             WRONG_COMMAND,
-                             reply_markup=keyboard_admin)
-            return
         admin_func(message)
     return wrapper
 
@@ -240,7 +229,7 @@ def change_username(message: types.Message):
 
 @bot.message_handler(func=lambda message: message.text == "пользователи")
 @admin_verification
-def show_all_profiles():
+def show_all_profiles(*args):
     users = get_all_users()
     if not users:
         bot.send_message(ADMIN_ID,
@@ -255,7 +244,7 @@ def show_all_profiles():
 
 
 @bot.message_handler(func=lambda message: message.text.startswith("/profile"))
-@admin_middle_verification
+@admin_verification
 @user_check
 def show_profile(user: dict):
     application_history = ""
@@ -274,7 +263,7 @@ def show_profile(user: dict):
 
 @bot.message_handler(func=lambda message: message.text == "ожидающие заявки")
 @admin_verification
-def show_pending_applications():
+def show_pending_applications(*args):
     users = get_all_users()
     found = False
     for user in users:
@@ -294,7 +283,7 @@ def show_pending_applications():
 
 
 @bot.message_handler(func=lambda message: message.text.startswith("/approve"))
-@admin_middle_verification
+@admin_verification
 @application_check
 def approve_application(application: dict):
     info = {
@@ -317,7 +306,7 @@ def approve_application(application: dict):
 
 
 @bot.message_handler(func=lambda message: message.text.startswith("/decline"))
-@admin_middle_verification
+@admin_verification
 @application_check
 def decline_application(application: dict):
     info = {"answer_date": get_current_time()}
@@ -336,7 +325,7 @@ def decline_application(application: dict):
 
 @bot.message_handler(func=lambda message: message.text == "напомнить о долге")
 @admin_verification
-def remind_all_users():
+def remind_all_users(*args):
     for user in get_all_users():
         send_remind(**user)
     bot.send_message(ADMIN_ID,
@@ -345,7 +334,7 @@ def remind_all_users():
 
 
 @bot.message_handler(func=lambda message: message.text.startswith("/remind_"))
-@admin_middle_verification
+@admin_verification
 @user_check
 def remind_user(user: dict):
     send_remind(**user)
@@ -364,7 +353,7 @@ def send_remind(user_id: int, debt: int, **kwargs):
 
 @bot.message_handler(func=lambda message: message.text == "общая сумма в долгах")
 @admin_verification
-def count_debts():
+def count_debts(*args):
     value = 0
     for user in get_all_users():
         value += user["debt"]

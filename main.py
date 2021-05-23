@@ -348,7 +348,7 @@ def send_remind(user_id: int, debt: int, **kwargs):
         bot.send_message(user_id,
                          f"Напоминание о долге!\n"
                          f"Ваш общий долг состовляет {debt:,}.",
-                         reply_markup=keyboard_admin)
+                         reply_markup=keyboard_user)
 
 
 @bot.message_handler(func=lambda message: message.text == "общая сумма в долгах")

@@ -42,14 +42,21 @@ def admin_middle_verification(admin_func):
     return wrapper
 
 
-def validation_check(money_func):
+def back_check(some_func):
     def wrapper(message):
-        value = message.text
-        if value == BACK:
+        if message.text == BACK:
             bot.send_message(message.chat.id,
                              "Вы вернулись в меню",
                              reply_markup=keyboard_user)
             return
+        some_func(message)
+    return wrapper
+
+
+def validation_check(money_func):
+    @back_check
+    def wrapper(message):
+        value = message.text
         if value.endswith("к") or value.endswith("k"):
             value = value[:-1] + "000"
         elif len(value) < 4 or not value.endswith("000"):
@@ -59,13 +66,29 @@ def validation_check(money_func):
         except ValueError:
             msg = bot.send_message(message.chat.id,
                                    "Вы неправильно ввели сумму.\n"
+                                   "Попробуйте еще раз.\n"
                                    "Правильные примеры: '5000' / '5' / '5к'.",
                                    reply_markup=keyboard_back)
             bot.register_next_step_handler(msg, wrapper)
             return
         if value > 5000000:
             msg = bot.send_message(message.chat.id,
-                                   "Вы запросили слишком большую сумму.",
+                                   "Вы указали слишком большую сумму.\n"
+                                   "Введите сумму поменьше.",
+                                   reply_markup=keyboard_back)
+            bot.register_next_step_handler(msg, wrapper)
+            return
+        elif not value:  # value = 0
+            msg = bot.send_message(message.chat.id,
+                                   "Вы ввели нулевую сумму.\n"
+                                   "Введите сумму больше нуля.",
+                                   reply_markup=keyboard_back)
+            bot.register_next_step_handler(msg, wrapper)
+            return
+        elif value < 0:
+            msg = bot.send_message(message.chat.id,
+                                   "Вы ввели отрицательную сумму.\n"
+                                   "Введите сумму больше нуля.",
                                    reply_markup=keyboard_back)
             bot.register_next_step_handler(msg, wrapper)
             return
@@ -203,12 +226,8 @@ def change_username_handler(message: types.Message):
     bot.register_next_step_handler(msg, change_username)
 
 
+@back_check
 def change_username(message: types.Message):
-    if message.text == BACK:
-        bot.send_message(message.chat.id,
-                         "Вы вернулись в меню",
-                         reply_markup=keyboard_user)
-        return
     info = {'username': message.text}
     change_user(message.from_user.id, info)
     bot.send_message(message.chat.id,

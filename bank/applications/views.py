@@ -1,4 +1,3 @@
-from datetime import datetime
 from flask import Blueprint
 from flask_apispec import marshal_with, use_kwargs
 from bank import docs

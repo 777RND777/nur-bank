@@ -21,7 +21,7 @@ keyboard_admin.row("напомнить о долге", "общая сумма в
 
 
 def admin_verification(admin_func):
-    def wrapper(message):
+    def wrapper(message: types.Message):
         if message.from_user.id != ADMIN_ID:
             bot.send_message(message.from_user.id,
                              WRONG_COMMAND,
@@ -32,7 +32,7 @@ def admin_verification(admin_func):
 
 
 def back_check(some_func):
-    def wrapper(message):
+    def wrapper(message: types.Message):
         if message.text == BACK:
             bot.send_message(message.chat.id,
                              "Вы вернулись в меню",
@@ -44,7 +44,7 @@ def back_check(some_func):
 
 def validation_check(money_func):
     @back_check
-    def wrapper(message):
+    def wrapper(message: types.Message):
         value = message.text
         if value.endswith("к") or value.endswith("k"):
             value = value[:-1] + "000"
@@ -86,7 +86,7 @@ def validation_check(money_func):
 
 
 def user_check(user_func):
-    def wrapper(message):
+    def wrapper(message: types.Message):
         user_id = int(message.text[8:])
         user = get_user(user_id)
         if not user:
@@ -99,7 +99,7 @@ def user_check(user_func):
 
 
 def application_check(application_func):
-    def wrapper(message):
+    def wrapper(message: types.Message):
         application_id = int(message.text[8:])
         application = get_application(application_id)
         if not application:

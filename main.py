@@ -32,19 +32,19 @@ def admin_verification(admin_func):
 
 
 def back_check(some_func):
-    def wrapper(message: types.Message):
+    def wrapper(message: types.Message, *args):
         if message.text == BACK:
             bot.send_message(message.chat.id,
                              "Вы вернулись в меню",
                              reply_markup=keyboard_user)
             return
-        some_func(message)
+        some_func(message, *args)
     return wrapper
 
 
 def validation_check(money_func):
     @back_check
-    def wrapper(message: types.Message):
+    def wrapper(message: types.Message, is_loan: bool):
         value = message.text
         if value.endswith("к") or value.endswith("k"):
             value = value[:-1] + "000"
@@ -81,7 +81,7 @@ def validation_check(money_func):
                                    reply_markup=keyboard_back)
             bot.register_next_step_handler(msg, wrapper)
             return
-        money_func(message, value)
+        money_func(message, value, is_loan)
     return wrapper
 
 
@@ -130,27 +130,7 @@ def make_loan_handler(message: types.Message):
         msg = bot.send_message(message.chat.id,
                                "Какую сумму вы хотите взять в долг?",
                                reply_markup=keyboard_back)
-        bot.register_next_step_handler(msg, make_loan_request)
-
-
-@validation_check
-def make_loan_request(message: types.Message, value: int):
-    application = {
-        'user_id': message.from_user.id,
-        'value': value,
-        "request_date": get_current_time(),
-    }
-    application = create_application(application)
-    bot.send_message(message.chat.id,
-                     f"Ваша заявка на получение долга в размере {value:,} отправлена на рассмотрение.",
-                     reply_markup=keyboard_user)
-
-    user = get_user(message.from_user.id)
-    bot.send_message(ADMIN_ID,
-                     f"{get_user_full_name(**user)} запросил(-а) в долг сумму {value:,}\n"
-                     f"Одобрить:  /approve{application['id']}\n"
-                     f"Отклонить: /decline{application['id']}",
-                     reply_markup=keyboard_admin)
+        bot.register_next_step_handler(msg, make_request, True)
 
 
 @bot.message_handler(func=lambda message: message.text == "уведомить об оплате долга")
@@ -158,24 +138,32 @@ def make_payment_handler(message: types.Message):
     msg = bot.send_message(message.chat.id,
                            "Какую сумму из вашего долга вы оплатили?",
                            reply_markup=keyboard_back)
-    bot.register_next_step_handler(msg, make_payment_notification)
+    bot.register_next_step_handler(msg, make_request, False)
 
 
 @validation_check
-def make_payment_notification(message: types.Message, value):
+def make_request(message: types.Message, value: int, is_loan: bool):
+    if is_loan:
+        message_to_user = f"Ваша заявка на получение долга в размере {value:,} отправлена на рассмотрение."
+        message_to_admin = "запросил(-а) в долг сумму"
+    else:
+        message_to_user = f"Ваше уведомление о совершении оплаты в размере {value:,} находится на проверке."
+        message_to_admin = "уменьшил(-а) сумму долга на"
+        value = -value
+
     application = {
         'user_id': message.from_user.id,
-        'value': -value,
+        'value': value,
         "request_date": get_current_time(),
     }
     application = create_application(application)
     bot.send_message(message.chat.id,
-                     f"Ваше уведомление о совершении оплаты в размере {value:,} находится на проверке.",
+                     message_to_user,
                      reply_markup=keyboard_user)
 
     user = get_user(message.from_user.id)
     bot.send_message(ADMIN_ID,
-                     f"{get_user_full_name(**user)} уменьшил(-а) сумму долга на {value:,}\n"
+                     f"{get_user_full_name(**user)} {message_to_admin} {value:,}\n"
                      f"Одобрить:  /approve{application['id']}\n"
                      f"Отклонить: /decline{application['id']}",
                      reply_markup=keyboard_admin)

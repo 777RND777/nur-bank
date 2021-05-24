@@ -58,28 +58,28 @@ def validation_check(money_func):
                                    "Попробуйте еще раз.\n"
                                    "Правильные примеры: '5000' / '5' / '5к'.",
                                    reply_markup=keyboard_back)
-            bot.register_next_step_handler(msg, wrapper)
+            bot.register_next_step_handler(msg, wrapper, is_loan)
             return
         if value > 5000000:
             msg = bot.send_message(message.chat.id,
                                    "Вы указали слишком большую сумму.\n"
                                    "Введите сумму поменьше.",
                                    reply_markup=keyboard_back)
-            bot.register_next_step_handler(msg, wrapper)
+            bot.register_next_step_handler(msg, wrapper, is_loan)
             return
         elif not value:  # value = 0
             msg = bot.send_message(message.chat.id,
                                    "Вы ввели нулевую сумму.\n"
                                    "Введите сумму больше нуля.",
                                    reply_markup=keyboard_back)
-            bot.register_next_step_handler(msg, wrapper)
+            bot.register_next_step_handler(msg, wrapper, is_loan)
             return
         elif value < 0:
             msg = bot.send_message(message.chat.id,
                                    "Вы ввели отрицательную сумму.\n"
                                    "Введите сумму больше нуля.",
                                    reply_markup=keyboard_back)
-            bot.register_next_step_handler(msg, wrapper)
+            bot.register_next_step_handler(msg, wrapper, is_loan)
             return
         money_func(message, value, is_loan)
     return wrapper
@@ -116,10 +116,20 @@ def application_check(application_func):
     return wrapper
 
 
+def user_register_check(user_func):
+    def wrapper(message: types.Message):
+        user = get_user(message.from_user.id)
+        if not user:
+            register_user(message)
+        user_func(message)
+    return wrapper
+
+
 # USER
 
 
 @bot.message_handler(func=lambda message: message.text == "оставить заявку на долг")
+@user_register_check
 def make_loan_handler(message: types.Message):
     value = get_user_pending_loan_amount(message.from_user.id)
     if value == 3:
@@ -134,6 +144,7 @@ def make_loan_handler(message: types.Message):
 
 
 @bot.message_handler(func=lambda message: message.text == "уведомить об оплате долга")
+@user_register_check
 def make_payment_handler(message: types.Message):
     msg = bot.send_message(message.chat.id,
                            "Какую сумму из вашего долга вы оплатили?",
@@ -170,6 +181,7 @@ def make_request(message: types.Message, value: int, is_loan: bool):
 
 
 @bot.message_handler(func=lambda message: message.text == "посмотреть сумму долга")
+@user_register_check
 def get_current_debt(message: types.Message):
     user = get_user(message.from_user.id)
     if not user['debt']:
@@ -195,6 +207,7 @@ def get_current_debt(message: types.Message):
 
 
 @bot.message_handler(func=lambda message: message.text == "изменить имя")
+@user_register_check
 def change_username_handler(message: types.Message):
     msg = bot.send_message(message.chat.id,
                            "Как вы хотите, чтобы к вам обращались?\n"
@@ -368,6 +381,13 @@ def start_message(message: types.Message):
                          reply_markup=keyboard_user)
         return
 
+    register_user(message)
+    bot.send_message(message.chat.id,
+                     f"Приветствуем вас в НурБанке, {message.from_user.username}!",
+                     reply_markup=keyboard_user)
+
+
+def register_user(message: types.Message):
     user_info = {
         'user_id': message.from_user.id,
         'first_name': message.from_user.first_name,
@@ -375,10 +395,6 @@ def start_message(message: types.Message):
         'username': message.from_user.username,
     }
     user = create_user(user_info)
-    bot.send_message(message.chat.id,
-                     f"Приветствуем вас в НурБанке, {user['username']}!",
-                     reply_markup=keyboard_user)
-
     bot.send_message(ADMIN_ID,
                      f"Новый пользователь Нурбанка: {get_user_full_name(**user)}",
                      reply_markup=keyboard_admin)

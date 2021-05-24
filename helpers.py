@@ -7,7 +7,7 @@ def get_user_full_name(first_name: str, username: str, last_name: str, **kwargs)
 
 def get_application_info(id: int, value: int, request_date: str, **kwargs) -> str:
     return f"ID: {id}\n"\
-           f"Сумма: {value}\n"\
+           f"Сумма: {value:,}\n"\
            f"Дата: {request_date}"
 
 

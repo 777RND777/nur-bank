@@ -1,4 +1,5 @@
 from bank import client
+from random import randint
 # TODO logger
 
 
@@ -12,16 +13,16 @@ def get_user(user_id: int) -> dict:
     return c.get_json()
 
 
-def create_user(user: dict) -> dict:
-    for key, value in user.items():
+def create_user(info: dict) -> dict:
+    for key, value in info.items():
         if not value:
-            user[key] = ""
-    c = client.post("/users", json=user)
+            info[key] = ""
+    c = client.post("/users", json=info)
     return c.get_json()
 
 
-def change_user(user_id: int, json: dict):
-    _ = client.put(f"/users/{user_id}", json=json)
+def change_user(user_id: int, info: dict):
+    _ = client.put(f"/users/{user_id}", json=info)
 
 
 def get_all_applications() -> dict:
@@ -34,13 +35,16 @@ def get_application(application_id: int) -> dict:
     return c.get_json()
 
 
-def create_application(json: dict) -> dict:
-    c = client.post("/applications", json=json)
+def create_application(info: dict) -> dict:
+    info['id'] = randint(100000000, 999999999)
+    while get_application(info['id']):  # do while there is an application with the same id
+        info['id'] = randint(100000000, 999999999)
+    c = client.post("/applications", json=info)
     return c.get_json()
 
 
-def change_application(application_id: int, json: dict):
-    _ = client.put(f"/applications/{application_id}", json=json)
+def change_application(application_id: int, info: dict):
+    _ = client.put(f"/applications/{application_id}", json=info)
 
 
 def get_user_pending_loans(user_id: int) -> int:

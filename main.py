@@ -163,7 +163,7 @@ def make_request(message: types.Message, value: int, is_loan: bool):
         value = -value
 
     application = {
-        "id": message.from_user.id,
+        "user_id": message.from_user.id,
         "value": value,
         "request_date": get_current_time(),
     }
@@ -296,7 +296,7 @@ def approve_application(application: dict):
                      f"Вы одобрили заявку.",
                      reply_markup=keyboard_admin)
 
-    user = get_user(application['id'])
+    user = get_user(application['user_id'])
     info = {"debt": user['debt'] + application['value']}
     change_user(user['id'], info)
     action = "получение" if application['value'] > 0 else "погашение"

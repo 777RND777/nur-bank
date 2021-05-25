@@ -46,25 +46,25 @@ def change_application(application_id: int, json: dict):
 def get_user_pending_loans(user_id: int) -> int:
     c = client.get(f"/users/{user_id}")
     value = 0
-    for application in c.get_json()["applications"]:
-        if application["value"] > 0 and not application["answer_date"]:
-            value += application["value"]
+    for application in c.get_json()['applications']:
+        if application['value'] > 0 and not application['answer_date']:
+            value += application['value']
     return value
 
 
 def get_user_pending_payments(user_id: int) -> int:
     c = client.get(f"/users/{user_id}")
     value = 0
-    for application in c.get_json()["applications"]:
-        if application["value"] < 0 and not application["answer_date"]:
-            value -= application["value"]
+    for application in c.get_json()['applications']:
+        if application['value'] < 0 and not application['answer_date']:
+            value -= application['value']
     return value
 
 
 def get_user_pending_loan_amount(user_id: int) -> int:
     c = client.get(f"/users/{user_id}")
     amount = 0
-    for application in c.get_json()["applications"]:
-        if application["value"] > 0 and not application["answer_date"]:
+    for application in c.get_json()['applications']:
+        if application['value'] > 0 and not application['answer_date']:
             amount += 1
     return amount

@@ -107,7 +107,7 @@ def application_check(application_func):
                              "Нет заявки с таким ID.",
                              reply_markup=keyboard_admin)
             return
-        if application["answer_date"]:
+        if application['answer_date']:
             bot.send_message(ADMIN_ID,
                              "Вы уже ответили на данную заявку.",
                              reply_markup=keyboard_admin)
@@ -163,8 +163,8 @@ def make_request(message: types.Message, value: int, is_loan: bool):
         value = -value
 
     application = {
-        'user_id': message.from_user.id,
-        'value': value,
+        "user_id": message.from_user.id,
+        "value": value,
         "request_date": get_current_time(),
     }
     application = create_application(application)
@@ -218,7 +218,7 @@ def change_username_handler(message: types.Message):
 
 @back_check
 def change_username(message: types.Message):
-    info = {'username': message.text}
+    info = {"username": message.text}
     change_user(message.from_user.id, info)
     bot.send_message(message.chat.id,
                      f"Ваше имя изменено на '{message.text}'.",
@@ -249,7 +249,7 @@ def show_all_profiles(*args):
 @user_check
 def show_profile(user: dict):
     application_history = ""
-    for i, application in enumerate(user["applications"][::-1]):
+    for i, application in enumerate(user['applications'][::-1]):
         application_history += f"\n{get_application_info(**application)}\n"
         if i == 4:
             break
@@ -268,8 +268,8 @@ def show_pending_applications(*args):
     users = get_all_users()
     found = False
     for user in users:
-        for application in user["applications"]:
-            if not application["answer_date"]:
+        for application in user['applications']:
+            if not application['answer_date']:
                 bot.send_message(ADMIN_ID,
                                  f"Заявитель: {get_user_full_name(**user)}\n"
                                  f"{get_application_info(**application)}\n"
@@ -288,19 +288,19 @@ def show_pending_applications(*args):
 @application_check
 def approve_application(application: dict):
     info = {
-        'approved': True,
+        "approved": True,
         "answer_date": get_current_time(),
     }
-    change_application(application["id"], info)
+    change_application(application['id'], info)
     bot.send_message(ADMIN_ID,
                      f"Вы одобрили заявку.",
                      reply_markup=keyboard_admin)
 
-    user = get_user(application["user_id"])
-    info = {"debt": user["debt"] + application["value"]}
-    change_user(user["user_id"], info)
-    action = "получение" if application["value"] > 0 else "погашение"
-    bot.send_message(user["user_id"],
+    user = get_user(application['user_id'])
+    info = {"debt": user['debt'] + application['value']}
+    change_user(user['user_id'], info)
+    action = "получение" if application['value'] > 0 else "погашение"
+    bot.send_message(user['user_id'],
                      f"Ваша заявка на {action} суммы в размере {abs(application['value']):,} одобрена.\n"
                      f"Ваш общий долг составляет {user['debt'] + application['value']:,}.",
                      reply_markup=keyboard_user)
@@ -311,14 +311,14 @@ def approve_application(application: dict):
 @application_check
 def decline_application(application: dict):
     info = {"answer_date": get_current_time()}
-    change_application(application["id"], info)
+    change_application(application['id'], info)
     bot.send_message(ADMIN_ID,
                      f"Вы отклонили заявку.",
                      reply_markup=keyboard_admin)
 
-    user = get_user(application["user_id"])
-    action = "получение" if application["value"] > 0 else "погашение"
-    bot.send_message(user["user_id"],
+    user = get_user(application['user_id'])
+    action = "получение" if application['value'] > 0 else "погашение"
+    bot.send_message(user['user_id'],
                      f"Ваша заявка на {action} суммы в размере {abs(application['value']):,} отклонена.\n"
                      f"Ваш общий долг составляет {user['debt']:,}.",
                      reply_markup=keyboard_user)
@@ -357,7 +357,7 @@ def send_remind(user_id: int, debt: int, **kwargs):
 def count_debts(*args):
     value = 0
     for user in get_all_users():
-        value += user["debt"]
+        value += user['debt']
     bot.send_message(ADMIN_ID,
                      f"Общая сумма в долгах: {value:,}.",
                      reply_markup=keyboard_admin)
@@ -389,10 +389,10 @@ def start_message(message: types.Message):
 
 def register_user(message: types.Message):
     user_info = {
-        'user_id': message.from_user.id,
-        'first_name': message.from_user.first_name,
-        'last_name': message.from_user.last_name,
-        'username': message.from_user.username,
+        "user_id": message.from_user.id,
+        "first_name": message.from_user.first_name,
+        "last_name": message.from_user.last_name,
+        "username": message.from_user.username,
     }
     user = create_user(user_info)
     bot.send_message(ADMIN_ID,

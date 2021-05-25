@@ -208,17 +208,17 @@ def get_current_debt(message: types.Message):
 
 @bot.message_handler(func=lambda message: message.text == "изменить имя")
 @user_register_check
-def change_username_handler(message: types.Message):
+def change_nickname_handler(message: types.Message):
     msg = bot.send_message(message.chat.id,
                            "Как вы хотите, чтобы к вам обращались?\n"
                            f"Имя '{BACK}' не разрешено. Вы будете отправлены назад.",
                            reply_markup=keyboard_back)
-    bot.register_next_step_handler(msg, change_username)
+    bot.register_next_step_handler(msg, change_nickname)
 
 
 @back_check
-def change_username(message: types.Message):
-    info = {"username": message.text}
+def change_nickname(message: types.Message):
+    info = {"nickname": message.text}
     change_user(message.from_user.id, info)
     bot.send_message(message.chat.id,
                      f"Ваше имя изменено на '{message.text}'.",
@@ -253,7 +253,10 @@ def show_profile(user: dict):
         application_history += f"\n{get_application_info(**application)}\n"
         if i == 4:
             break
+    if not application_history:
+        application_history = "\nНет обращений"
     bot.send_message(ADMIN_ID,
+                     f"{user['username']}\n"
                      f"Имя: {get_user_full_name(**user)}\n"
                      f"ID: {user['id']}\n"
                      f"Долг: {user['debt']}\n"
@@ -377,7 +380,7 @@ def start_message(message: types.Message):
     user = get_user(message.from_user.id)
     if user:
         bot.send_message(message.chat.id,
-                         f"С возвращением в НурБанк, {user['username']}!",
+                         f"С возвращением в НурБанк, {user['nickname']}!",
                          reply_markup=keyboard_user)
         return
 

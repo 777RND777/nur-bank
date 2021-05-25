@@ -1,8 +1,8 @@
 from datetime import datetime
 
 
-def get_user_full_name(first_name: str, username: str, last_name: str, **kwargs) -> str:
-    return f"{first_name} '{username}' {last_name}"
+def get_user_full_name(first_name: str, nickname: str, last_name: str, **kwargs) -> str:
+    return f"{first_name} '{nickname}' {last_name}"
 
 
 def get_application_info(id: int, value: int, request_date: str, **kwargs) -> str:

@@ -76,6 +76,7 @@ class User(Base):
     first_name = db.Column(db.String(250), nullable=False)
     last_name = db.Column(db.String(250), nullable=False)
     username = db.Column(db.String(250))
+    nickname = db.Column(db.String(250))
     debt = db.Column(db.Integer, default=0)
     applications = relationship("Application", backref="author", lazy=True)
 
@@ -83,7 +84,8 @@ class User(Base):
         self.id = id
         self.first_name = first_name
         self.last_name = last_name
-        self.username = username
+        self.username = f"@{username}"
+        self.nickname = username
 
     @classmethod
     def get_list(cls):

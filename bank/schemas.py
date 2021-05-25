@@ -18,6 +18,7 @@ class UserSchema(Schema):
     first_name = fields.String(validate=[validate.Length(max=250)])
     last_name = fields.String(validate=[validate.Length(max=250)])
     username = fields.String(validate=[validate.Length(max=250)])
+    nickname = fields.String(validate=[validate.Length(max=250)])
     debt = fields.Integer()
     applications = fields.Nested(ApplicationSchema, many=True, dump_only=True)
     # message = fields.String(dump_only=True)

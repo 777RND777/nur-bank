@@ -130,7 +130,7 @@ def user_register_check(user_func):
 
 @bot.message_handler(func=lambda message: message.text == "оставить заявку на долг")
 @user_register_check
-def make_loan_handler(message: types.Message):
+def request_loan(message: types.Message):
     value = get_user_pending_loan_amount(message.from_user.id)
     if value == 3:
         bot.send_message(message.chat.id,
@@ -145,7 +145,7 @@ def make_loan_handler(message: types.Message):
 
 @bot.message_handler(func=lambda message: message.text == "уведомить об оплате долга")
 @user_register_check
-def make_payment_handler(message: types.Message):
+def notify_payment(message: types.Message):
     msg = bot.send_message(message.chat.id,
                            "Какую сумму из вашего долга вы оплатили?",
                            reply_markup=keyboard_back)

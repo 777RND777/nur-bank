@@ -87,7 +87,7 @@ def validation_check(money_func):
 
 def user_check(user_func):
     def wrapper(message: types.Message):
-        user_id = int(message.text[8:])
+        user_id = int(message.text[9:])
         user = get_user(user_id)
         if not user:
             bot.send_message(ADMIN_ID,
@@ -100,7 +100,7 @@ def user_check(user_func):
 
 def application_check(application_func):
     def wrapper(message: types.Message):
-        application_id = int(message.text[8:])
+        application_id = int(message.text[9:])
         application = get_application(application_id)
         if not application:
             bot.send_message(ADMIN_ID,
@@ -175,8 +175,8 @@ def make_request(message: types.Message, value: int, is_loan: bool):
     user = get_user(message.from_user.id)
     bot.send_message(ADMIN_ID,
                      f"{get_user_full_name(**user)} {message_to_admin} {value:,}\n"
-                     f"Одобрить:  /approve{application['id']}\n"
-                     f"Отклонить: /decline{application['id']}",
+                     f"Одобрить:  /approve_{application['id']}\n"
+                     f"Отклонить: /decline_{application['id']}",
                      reply_markup=keyboard_admin)
 
 
@@ -240,11 +240,11 @@ def show_all_profiles(*args):
     for user in get_all_users():
         bot.send_message(ADMIN_ID,
                          f"Имя: {get_user_full_name(**user)}\n"
-                         f"Профиль: /profile{user['id']}",
+                         f"Профиль: /profile_{user['id']}",
                          reply_markup=keyboard_admin)
 
 
-@bot.message_handler(func=lambda message: message.text.startswith("/profile"))
+@bot.message_handler(func=lambda message: message.text.startswith("/profile_"))
 @admin_verification
 @user_check
 def show_profile(user: dict):
@@ -257,7 +257,7 @@ def show_profile(user: dict):
                      f"Имя: {get_user_full_name(**user)}\n"
                      f"ID: {user['id']}\n"
                      f"Долг: {user['debt']}\n"
-                     f"Напомнить: /remind_{user['id']}\n\n"
+                     f"Напомнить: /remind__{user['id']}\n\n"
                      f"Последние обращения: {application_history}",
                      reply_markup=keyboard_admin)
 
@@ -273,8 +273,8 @@ def show_pending_applications(*args):
                 bot.send_message(ADMIN_ID,
                                  f"Заявитель: {get_user_full_name(**user)}\n"
                                  f"{get_application_info(**application)}\n"
-                                 f"Одобрить:  /approve{application['id']}\n"
-                                 f"Отклонить: /decline{application['id']}",
+                                 f"Одобрить:  /approve_{application['id']}\n"
+                                 f"Отклонить: /decline_{application['id']}",
                                  reply_markup=keyboard_admin)
                 found = True
     if not found:
@@ -283,7 +283,7 @@ def show_pending_applications(*args):
                          reply_markup=keyboard_admin)
 
 
-@bot.message_handler(func=lambda message: message.text.startswith("/approve"))
+@bot.message_handler(func=lambda message: message.text.startswith("/approve_"))
 @admin_verification
 @application_check
 def approve_application(application: dict):
@@ -306,7 +306,7 @@ def approve_application(application: dict):
                      reply_markup=keyboard_user)
 
 
-@bot.message_handler(func=lambda message: message.text.startswith("/decline"))
+@bot.message_handler(func=lambda message: message.text.startswith("/decline_"))
 @admin_verification
 @application_check
 def decline_application(application: dict):
@@ -334,7 +334,7 @@ def remind_all_users(*args):
                      reply_markup=keyboard_admin)
 
 
-@bot.message_handler(func=lambda message: message.text.startswith("/remind_"))
+@bot.message_handler(func=lambda message: message.text.startswith("/remind__"))
 @admin_verification
 @user_check
 def remind_user(user: dict):

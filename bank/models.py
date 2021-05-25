@@ -1,11 +1,13 @@
 from sqlalchemy.orm import relationship
-from . import Base, db, session
+from . import Base, session
+import sqlalchemy as db
 
 
 class Application(Base):
     __tablename__ = "applications"
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.user_id"), nullable=False)
+    pk = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, unique=True, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     value = db.Column(db.Integer, nullable=False)
     request_date = db.Column(db.String(50), nullable=False)
     answer_date = db.Column(db.String(50))
@@ -69,16 +71,16 @@ class Application(Base):
 
 class User(Base):
     __tablename__ = "users"
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, unique=True, nullable=False)
+    pk = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, unique=True, nullable=False)
     first_name = db.Column(db.String(250), nullable=False)
     last_name = db.Column(db.String(250), nullable=False)
     username = db.Column(db.String(250))
     debt = db.Column(db.Integer, default=0)
     applications = relationship("Application", backref="author", lazy=True)
 
-    def __init__(self, user_id: int, first_name: str, last_name: str, username: str):
-        self.user_id = user_id
+    def __init__(self, id: int, first_name: str, last_name: str, username: str):
+        self.id = id
         self.first_name = first_name
         self.last_name = last_name
         self.username = username
@@ -96,7 +98,7 @@ class User(Base):
     @classmethod
     def get(cls, user_id: int):
         try:
-            user = cls.query.filter(cls.user_id == user_id).first()
+            user = cls.query.filter(cls.id == user_id).first()
             session.commit()
             return user
         except Exception:

@@ -2,7 +2,8 @@ from marshmallow import Schema, fields, validate
 
 
 class ApplicationSchema(Schema):
-    id = fields.Integer(dump_only=True)
+    pk = fields.Integer(dump_only=True)
+    id = fields.Integer()
     user_id = fields.Integer()
     value = fields.Integer()
     request_date = fields.String(validate=[validate.Length(max=50)])
@@ -12,8 +13,8 @@ class ApplicationSchema(Schema):
 
 
 class UserSchema(Schema):
-    id = fields.Integer(dump_only=True)
-    user_id = fields.Integer()
+    pk = fields.Integer(dump_only=True)
+    id = fields.Integer()
     first_name = fields.String(validate=[validate.Length(max=250)])
     last_name = fields.String(validate=[validate.Length(max=250)])
     username = fields.String(validate=[validate.Length(max=250)])

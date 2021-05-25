@@ -6,7 +6,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 from .schemas import UserSchema
-import sqlalchemy as db
 
 
 app = Flask(__name__)

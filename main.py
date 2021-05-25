@@ -162,12 +162,12 @@ def make_request(message: types.Message, value: int, is_loan: bool):
         message_to_admin = "уменьшил(-а) сумму долга на"
         value = -value
 
-    application = {
+    info = {
         "user_id": message.from_user.id,
         "value": value,
         "request_date": get_current_time(),
     }
-    application = create_application(application)
+    application = create_application(info)
     bot.send_message(message.chat.id,
                      message_to_user,
                      reply_markup=keyboard_user)
@@ -344,9 +344,9 @@ def remind_user(user: dict):
                      reply_markup=keyboard_admin)
 
 
-def send_remind(user_id: int, debt: int, **kwargs):
+def send_remind(id: int, debt: int, **kwargs):
     if debt > 0:
-        bot.send_message(user_id,
+        bot.send_message(id,
                          f"Напоминание о долге!\n"
                          f"Ваш общий долг состовляет {debt:,}.",
                          reply_markup=keyboard_user)
@@ -388,13 +388,13 @@ def start_message(message: types.Message):
 
 
 def register_user(message: types.Message):
-    user_info = {
+    info = {
         "id": message.from_user.id,
         "first_name": message.from_user.first_name,
         "last_name": message.from_user.last_name,
         "username": message.from_user.username,
     }
-    user = create_user(user_info)
+    user = create_user(info)
     bot.send_message(ADMIN_ID,
                      f"Новый пользователь Нурбанка: {get_user_full_name(**user)}",
                      reply_markup=keyboard_admin)

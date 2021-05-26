@@ -87,7 +87,7 @@ def validation_check(money_func):
 
 def user_check(user_func):
     def wrapper(message: types.Message):
-        user_id = int(message.text[9:])
+        user_id = int(message.text[message.text.index("_")+1:])
         user = get_user(user_id)
         if not user:
             bot.send_message(ADMIN_ID,
@@ -100,7 +100,7 @@ def user_check(user_func):
 
 def application_check(application_func):
     def wrapper(message: types.Message):
-        application_id = int(message.text[9:])
+        application_id = int(message.text[message.text.index("_")+1:])
         application = get_application(application_id)
         if not application:
             bot.send_message(ADMIN_ID,
@@ -263,7 +263,7 @@ def show_profile(user: dict):
                      f"Имя: {h.get_user_full_name(**user)}\n"
                      f"ID: {user['id']}\n"
                      f"Долг: {user['debt']}\n"
-                     f"Напомнить: /remind__{user['id']}\n\n"
+                     f"Напомнить: /remind_{user['id']}\n\n"
                      f"Последние обращения: {application_history}",
                      reply_markup=keyboard_admin)
 
@@ -340,7 +340,7 @@ def remind_all_users(*args):
                      reply_markup=keyboard_admin)
 
 
-@bot.message_handler(func=lambda message: message.text.startswith("/remind__"))
+@bot.message_handler(func=lambda message: message.text.startswith("/remind_"))
 @admin_verification
 @user_check
 def remind_user(user: dict):

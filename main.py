@@ -121,6 +121,9 @@ def user_register_check(user_func):
         user = get_user(message.from_user.id)
         if not user:
             register_user(message)
+        elif user['username'] != message.from_user.username:
+            info = {"username": message.from_user.username}
+            change_user(message.from_user.id, info)
         user_func(message)
     return wrapper
 

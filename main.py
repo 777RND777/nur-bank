@@ -322,7 +322,7 @@ def decline_application(application: dict):
                      f"Вы отклонили заявку.",
                      reply_markup=keyboard_admin)
 
-    user = get_user(application['id'])
+    user = get_user(application['user_id'])
     action = "получение" if application['value'] > 0 else "погашение"
     bot.send_message(user['id'],
                      f"Ваша заявка на {action} суммы в размере {abs(application['value']):,} отклонена.\n"

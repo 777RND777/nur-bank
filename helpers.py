@@ -13,3 +13,18 @@ def get_application_info(id: int, value: int, request_date: str, **kwargs) -> st
 
 def get_current_time() -> str:
     return datetime.now().strftime("%H:%M:%S - %d/%m/%Y")
+
+
+# KEYBOARD BUTTONS
+
+# USER
+REQUEST_LOAN = "оставить заявку на долг"
+NOTIFY_PAYMENT = "уведомить об оплате долга"
+GET_CURRENT_DEBT = "посмотреть сумму долга"
+CHANGE_NICKNAME = "изменить имя"
+
+# ADMIN
+SHOW_ALL_PROFILES = "пользователи"
+SHOW_PENDING_APPLICATIONS = "ожидающие заявки"
+REMIND_ALL_USERS = "напомнить о долге"
+COUNT_DEBTS = "общая сумма в долгах"

@@ -1,20 +1,20 @@
 from config import *
 from db_requests import *
-from helpers import *
 from telebot import types
+import helpers as h
 import telebot
 
 
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 
 keyboard_user = types.ReplyKeyboardMarkup()
-keyboard_user.row("оставить заявку на долг", "уведомить об оплате долга")
-keyboard_user.row("посмотреть сумму долга", "изменить имя")
+keyboard_user.row(h.REQUEST_LOAN, h.NOTIFY_PAYMENT)
+keyboard_user.row(h.GET_CURRENT_DEBT, h.CHANGE_NICKNAME)
 keyboard_back = types.ReplyKeyboardMarkup()
 keyboard_back.add(BACK)
 keyboard_admin = types.ReplyKeyboardMarkup()
-keyboard_admin.row("пользователи", "ожидающие заявки")
-keyboard_admin.row("напомнить о долге", "общая сумма в долгах")
+keyboard_admin.row(h.SHOW_ALL_PROFILES, h.SHOW_PENDING_APPLICATIONS)
+keyboard_admin.row(h.REMIND_ALL_USERS, h.COUNT_DEBTS)
 
 
 # DECORATORS
@@ -131,7 +131,7 @@ def user_register_check(user_func):
 # USER
 
 
-@bot.message_handler(func=lambda message: message.text == "оставить заявку на долг")
+@bot.message_handler(func=lambda message: message.text == h.REQUEST_LOAN)
 @user_register_check
 def request_loan(message: types.Message):
     value = get_user_pending_loan_amount(message.from_user.id)
@@ -146,7 +146,7 @@ def request_loan(message: types.Message):
         bot.register_next_step_handler(msg, make_request, True)
 
 
-@bot.message_handler(func=lambda message: message.text == "уведомить об оплате долга")
+@bot.message_handler(func=lambda message: message.text == h.NOTIFY_PAYMENT)
 @user_register_check
 def notify_payment(message: types.Message):
     msg = bot.send_message(message.chat.id,
@@ -168,7 +168,7 @@ def make_request(message: types.Message, value: int, is_loan: bool):
     info = {
         "user_id": message.from_user.id,
         "value": value,
-        "request_date": get_current_time(),
+        "request_date": h.get_current_time(),
     }
     application = create_application(info)
     bot.send_message(message.chat.id,
@@ -177,13 +177,13 @@ def make_request(message: types.Message, value: int, is_loan: bool):
 
     user = get_user(message.from_user.id)
     bot.send_message(ADMIN_ID,
-                     f"{get_user_full_name(**user)} {message_to_admin} {value:,}\n"
+                     f"{h.get_user_full_name(**user)} {message_to_admin} {value:,}\n"
                      f"Одобрить:  /approve_{application['id']}\n"
                      f"Отклонить: /decline_{application['id']}",
                      reply_markup=keyboard_admin)
 
 
-@bot.message_handler(func=lambda message: message.text == "посмотреть сумму долга")
+@bot.message_handler(func=lambda message: message.text == h.GET_CURRENT_DEBT)
 @user_register_check
 def get_current_debt(message: types.Message):
     user = get_user(message.from_user.id)
@@ -209,7 +209,7 @@ def get_current_debt(message: types.Message):
                          reply_markup=keyboard_user)
 
 
-@bot.message_handler(func=lambda message: message.text == "изменить имя")
+@bot.message_handler(func=lambda message: message.text == h.CHANGE_NICKNAME)
 @user_register_check
 def change_nickname_handler(message: types.Message):
     msg = bot.send_message(message.chat.id,
@@ -231,7 +231,7 @@ def change_nickname(message: types.Message):
 # ADMIN
 
 
-@bot.message_handler(func=lambda message: message.text == "пользователи")
+@bot.message_handler(func=lambda message: message.text == h.SHOW_ALL_PROFILES)
 @admin_verification
 def show_all_profiles(*args):
     users = get_all_users()
@@ -242,7 +242,7 @@ def show_all_profiles(*args):
         return
     for user in get_all_users():
         bot.send_message(ADMIN_ID,
-                         f"Имя: {get_user_full_name(**user)}\n"
+                         f"Имя: {h.get_user_full_name(**user)}\n"
                          f"Профиль: /profile_{user['id']}",
                          reply_markup=keyboard_admin)
 
@@ -253,14 +253,14 @@ def show_all_profiles(*args):
 def show_profile(user: dict):
     application_history = ""
     for i, application in enumerate(user['applications'][::-1]):
-        application_history += f"\n{get_application_info(**application)}\n"
+        application_history += f"\n{h.get_application_info(**application)}\n"
         if i == 4:
             break
     if not application_history:
         application_history = "\nНет обращений"
     bot.send_message(ADMIN_ID,
                      f"{user['username']}\n"
-                     f"Имя: {get_user_full_name(**user)}\n"
+                     f"Имя: {h.get_user_full_name(**user)}\n"
                      f"ID: {user['id']}\n"
                      f"Долг: {user['debt']}\n"
                      f"Напомнить: /remind__{user['id']}\n\n"
@@ -268,7 +268,7 @@ def show_profile(user: dict):
                      reply_markup=keyboard_admin)
 
 
-@bot.message_handler(func=lambda message: message.text == "ожидающие заявки")
+@bot.message_handler(func=lambda message: message.text == h.SHOW_PENDING_APPLICATIONS)
 @admin_verification
 def show_pending_applications(*args):
     users = get_all_users()
@@ -277,8 +277,8 @@ def show_pending_applications(*args):
         for application in user['applications']:
             if not application['answer_date']:
                 bot.send_message(ADMIN_ID,
-                                 f"Заявитель: {get_user_full_name(**user)}\n"
-                                 f"{get_application_info(**application)}\n"
+                                 f"Заявитель: {h.get_user_full_name(**user)}\n"
+                                 f"{h.get_application_info(**application)}\n"
                                  f"Одобрить:  /approve_{application['id']}\n"
                                  f"Отклонить: /decline_{application['id']}",
                                  reply_markup=keyboard_admin)
@@ -295,7 +295,7 @@ def show_pending_applications(*args):
 def approve_application(application: dict):
     info = {
         "approved": True,
-        "answer_date": get_current_time(),
+        "answer_date": h.get_current_time(),
     }
     change_application(application['id'], info)
     bot.send_message(ADMIN_ID,
@@ -316,7 +316,7 @@ def approve_application(application: dict):
 @admin_verification
 @application_check
 def decline_application(application: dict):
-    info = {"answer_date": get_current_time()}
+    info = {"answer_date": h.get_current_time()}
     change_application(application['id'], info)
     bot.send_message(ADMIN_ID,
                      f"Вы отклонили заявку.",
@@ -330,7 +330,7 @@ def decline_application(application: dict):
                      reply_markup=keyboard_user)
 
 
-@bot.message_handler(func=lambda message: message.text == "напомнить о долге")
+@bot.message_handler(func=lambda message: message.text == h.REMIND_ALL_USERS)
 @admin_verification
 def remind_all_users(*args):
     for user in get_all_users():
@@ -358,7 +358,7 @@ def send_remind(id: int, debt: int, **kwargs):
                          reply_markup=keyboard_user)
 
 
-@bot.message_handler(func=lambda message: message.text == "общая сумма в долгах")
+@bot.message_handler(func=lambda message: message.text == h.COUNT_DEBTS)
 @admin_verification
 def count_debts(*args):
     value = 0
@@ -402,7 +402,7 @@ def register_user(message: types.Message):
     }
     user = create_user(info)
     bot.send_message(ADMIN_ID,
-                     f"Новый пользователь Нурбанка: {get_user_full_name(**user)}",
+                     f"Новый пользователь Нурбанка: {h.get_user_full_name(**user)}",
                      reply_markup=keyboard_admin)
 
 

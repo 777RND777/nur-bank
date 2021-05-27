@@ -81,6 +81,16 @@ def validation_check(money_func):
                                    reply_markup=keyboard_back)
             bot.register_next_step_handler(msg, wrapper, is_loan)
             return
+        elif not is_loan:
+            user = get_user(message.from_user.id)
+            if user['debt'] < value:
+                msg = bot.send_message(message.chat.id,
+                                       "Вы указали сумму, превышающую ваш нынешний долг.\n"
+                                       "Введите сумму поменьше.\n"
+                                       f"Ваш долг: {user['debt']}",
+                                       reply_markup=keyboard_back)
+                bot.register_next_step_handler(msg, wrapper, is_loan)
+                return
         money_func(message, value, is_loan)
     return wrapper
 

@@ -71,6 +71,7 @@ def validation_check(money_func):
             bot.register_next_step_handler(msg, wrapper, is_loan)
             return
         elif not is_loan:
+            # TODO check summary of pending payments and check before a new one
             user = get_user(message.from_user.id)
             if user['debt'] < value:
                 msg = bot.send_message(message.chat.id,
@@ -274,7 +275,7 @@ def change_nickname(message: types.Message):
 
 
 # ADMIN
-
+# TODO creating applications by admin. maybe "created_by" field
 
 @bot.message_handler(func=lambda message: message.text == h.SHOW_ALL_PROFILES)
 @admin_verification

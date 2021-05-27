@@ -134,10 +134,9 @@ def user_register_check(user_func):
 @bot.message_handler(func=lambda message: message.text == h.REQUEST_LOAN)
 @user_register_check
 def request_loan(message: types.Message):
-    value = get_user_pending_loan_amount(message.from_user.id)
-    if value == 3:
+    if user_has_pending_loan(message.from_user.id):
         bot.send_message(message.chat.id,
-                         f"У вас слишком много ожидающих заявок. Дождитесь ответа на предыдущие.",
+                         f"У вас уже есть активная заявка. Дождитесь ответа на неё.",
                          reply_markup=keyboard_user)
     else:
         msg = bot.send_message(message.chat.id,

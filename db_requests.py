@@ -65,10 +65,9 @@ def get_user_pending_payments(user_id: int) -> int:
     return value
 
 
-def get_user_pending_loan_amount(user_id: int) -> int:
+def user_has_pending_loan(user_id: int) -> bool:
     c = client.get(f"/users/{user_id}")
-    amount = 0
     for application in c.get_json()['applications']:
         if application['value'] > 0 and not application['answer_date']:
-            amount += 1
-    return amount
+            return True
+    return False

@@ -20,17 +20,6 @@ keyboard_admin.row(h.REMIND_ALL_USERS, h.COUNT_DEBTS)
 # DECORATORS
 
 
-def admin_verification(admin_func):
-    def wrapper(message: types.Message):
-        if message.from_user.id != ADMIN_ID:
-            bot.send_message(message.from_user.id,
-                             WRONG_COMMAND,
-                             reply_markup=keyboard_admin)
-            return
-        admin_func(message)
-    return wrapper
-
-
 def back_check(some_func):
     def wrapper(message: types.Message, *args):
         if message.text == BACK:
@@ -95,6 +84,53 @@ def validation_check(money_func):
     return wrapper
 
 
+def user_register_check(user_func):
+    def wrapper(message: types.Message):
+        user = get_user(message.from_user.id)
+        if not user:
+            register_user(message)
+        elif user['username'] != message.from_user.username:
+            info = {"username": message.from_user.username}
+            change_user(message.from_user.id, info)
+        user_func(message)
+    return wrapper
+
+
+def user_application_check(application_func):
+    def wrapper(message: types.Message):
+        try:
+            application_id = int(message.text[message.text.index("_")+1:])
+        except ValueError:
+            bot.send_message(message.from_user.id,
+                             "ID заявки был введен неверно.",
+                             reply_markup=keyboard_user)
+            return
+        application = get_application(application_id)
+        if not application or application['user_id'] != message.from_user.id:
+            bot.send_message(message.from_user.id,
+                             "У вас нет заявки с таким ID.",
+                             reply_markup=keyboard_user)
+            return
+        if application['answer_date']:
+            bot.send_message(message.from_user.id,
+                             "На данную заявку уже ответили. Отмена заявки после получения ответа невозможна.",
+                             reply_markup=keyboard_user)
+            return
+        application_func(application)
+    return wrapper
+
+
+def admin_verification(admin_func):
+    def wrapper(message: types.Message):
+        if message.from_user.id != ADMIN_ID:
+            bot.send_message(message.from_user.id,
+                             WRONG_COMMAND,
+                             reply_markup=keyboard_admin)
+            return
+        admin_func(message)
+    return wrapper
+
+
 def user_check(user_func):
     def wrapper(message: types.Message):
         user_id = int(message.text[message.text.index("_")+1:])
@@ -108,7 +144,7 @@ def user_check(user_func):
     return wrapper
 
 
-def application_check(application_func):
+def admin_application_check(application_func):
     def wrapper(message: types.Message):
         application_id = int(message.text[message.text.index("_")+1:])
         application = get_application(application_id)
@@ -126,27 +162,19 @@ def application_check(application_func):
     return wrapper
 
 
-def user_register_check(user_func):
-    def wrapper(message: types.Message):
-        user = get_user(message.from_user.id)
-        if not user:
-            register_user(message)
-        elif user['username'] != message.from_user.username:
-            info = {"username": message.from_user.username}
-            change_user(message.from_user.id, info)
-        user_func(message)
-    return wrapper
-
-
 # USER
 
 
 @bot.message_handler(func=lambda message: message.text == h.LOAN_APPLICATION)
 @user_register_check
 def loan_application(message: types.Message):
-    if user_has_pending_loan(message.from_user.id):
+    if application := get_pending_loan_application(message.from_user.id):
         bot.send_message(message.chat.id,
-                         f"У вас уже есть активная заявка. Дождитесь ответа на неё.",
+                         f"У вас уже есть активная заявка на долг. Дождитесь ответа на неё.\n"
+                         f"Заявка:\n"
+                         f"Сумма: {application['value']}\n"
+                         f"Дата: {application['request_date']}\n"
+                         f"Отмена заявки: /cancel_{application['id']}",
                          reply_markup=keyboard_user)
     else:
         msg = bot.send_message(message.chat.id,
@@ -190,6 +218,15 @@ def make_request(message: types.Message, value: int, is_loan: bool):
                      f"Одобрить:  /approve_{application['id']}\n"
                      f"Отклонить: /decline_{application['id']}",
                      reply_markup=keyboard_admin)
+
+
+@bot.message_handler(func=lambda message: message.text.startswith("/cancel_"))
+@user_application_check
+def cancel_application(application: dict):
+    remove_application(application['id'])
+    bot.send_message(application['user_id'],
+                     f"Заявка была отменена.",
+                     reply_markup=keyboard_user)
 
 
 @bot.message_handler(func=lambda message: message.text == h.GET_CURRENT_DEBT)
@@ -300,13 +337,13 @@ def show_pending_applications(*args):
 
 @bot.message_handler(func=lambda message: message.text.startswith("/approve_"))
 @admin_verification
-@application_check
+@admin_application_check
 def approve_application(application: dict):
     info = {
         "approved": True,
         "answer_date": h.get_current_time(),
     }
-    change_application(application['id'], info)
+    update_application(application['id'], info)
     bot.send_message(ADMIN_ID,
                      f"Вы одобрили заявку.",
                      reply_markup=keyboard_admin)
@@ -323,10 +360,10 @@ def approve_application(application: dict):
 
 @bot.message_handler(func=lambda message: message.text.startswith("/decline_"))
 @admin_verification
-@application_check
+@admin_application_check
 def decline_application(application: dict):
     info = {"answer_date": h.get_current_time()}
-    change_application(application['id'], info)
+    update_application(application['id'], info)
     bot.send_message(ADMIN_ID,
                      f"Вы отклонили заявку.",
                      reply_markup=keyboard_admin)

@@ -43,10 +43,15 @@ def create_application(info: dict) -> dict:
     return c.get_json()
 
 
-def change_application(application_id: int, info: dict):
+def update_application(application_id: int, info: dict):
     _ = client.put(f"/applications/{application_id}", json=info)
 
 
+def remove_application(application_id: int):
+    _, _ = client.delete(f"/applications/{application_id}")
+
+
+# TODO add return in loop because only 1 pending loan application can exists
 def get_user_pending_loans(user_id: int) -> int:
     c = client.get(f"/users/{user_id}")
     value = 0
@@ -65,9 +70,9 @@ def get_user_pending_payments(user_id: int) -> int:
     return value
 
 
-def user_has_pending_loan(user_id: int) -> bool:
+def get_pending_loan_application(user_id: int) -> dict:
     c = client.get(f"/users/{user_id}")
     for application in c.get_json()['applications']:
         if application['value'] > 0 and not application['answer_date']:
-            return True
-    return False
+            return application
+    return {}

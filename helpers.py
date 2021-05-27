@@ -18,8 +18,8 @@ def get_current_time() -> str:
 # KEYBOARD BUTTONS
 
 # USER
-REQUEST_LOAN = "оставить заявку на долг"
-NOTIFY_PAYMENT = "уведомить об оплате долга"
+LOAN_APPLICATION = "оставить заявку на долг"
+PAYMENT_APPLICATION = "уведомить об оплате долга"
 GET_CURRENT_DEBT = "посмотреть сумму долга"
 CHANGE_NICKNAME = "изменить имя"
 

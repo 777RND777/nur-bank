@@ -8,7 +8,7 @@ import telebot
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 
 keyboard_user = types.ReplyKeyboardMarkup()
-keyboard_user.row(h.REQUEST_LOAN, h.NOTIFY_PAYMENT)
+keyboard_user.row(h.LOAN_APPLICATION, h.PAYMENT_APPLICATION)
 keyboard_user.row(h.GET_CURRENT_DEBT, h.CHANGE_NICKNAME)
 keyboard_back = types.ReplyKeyboardMarkup()
 keyboard_back.add(BACK)
@@ -141,9 +141,9 @@ def user_register_check(user_func):
 # USER
 
 
-@bot.message_handler(func=lambda message: message.text == h.REQUEST_LOAN)
+@bot.message_handler(func=lambda message: message.text == h.LOAN_APPLICATION)
 @user_register_check
-def request_loan(message: types.Message):
+def loan_application(message: types.Message):
     if user_has_pending_loan(message.from_user.id):
         bot.send_message(message.chat.id,
                          f"У вас уже есть активная заявка. Дождитесь ответа на неё.",
@@ -155,9 +155,9 @@ def request_loan(message: types.Message):
         bot.register_next_step_handler(msg, make_request, True)
 
 
-@bot.message_handler(func=lambda message: message.text == h.NOTIFY_PAYMENT)
+@bot.message_handler(func=lambda message: message.text == h.PAYMENT_APPLICATION)
 @user_register_check
-def notify_payment(message: types.Message):
+def payment_application(message: types.Message):
     msg = bot.send_message(message.chat.id,
                            "Какую сумму из вашего долга вы оплатили?",
                            reply_markup=keyboard_back)

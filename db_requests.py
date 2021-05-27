@@ -48,7 +48,7 @@ def update_application(application_id: int, info: dict):
 
 
 def remove_application(application_id: int):
-    _, _ = client.delete(f"/applications/{application_id}")
+    client.delete(f"/applications/{application_id}")
 
 
 # TODO add return in loop because only 1 pending loan application can exists

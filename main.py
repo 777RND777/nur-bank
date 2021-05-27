@@ -99,7 +99,7 @@ def user_register_check(user_func):
 def user_application_check(application_func):
     def wrapper(message: types.Message):
         try:
-            application_id = int(message.text[message.text.index("_")+1:])
+            application_id = h.cut_command(message.text)
         except ValueError:
             bot.send_message(message.from_user.id,
                              "ID заявки был введен неправильно.",
@@ -133,7 +133,7 @@ def admin_verification(admin_func):
 
 def user_check(user_func):
     def wrapper(message: types.Message):
-        user_id = int(message.text[message.text.index("_")+1:])
+        user_id = h.cut_command(message.text)
         user = get_user(user_id)
         if not user:
             bot.send_message(ADMIN_ID,
@@ -146,7 +146,7 @@ def user_check(user_func):
 
 def admin_application_check(application_func):
     def wrapper(message: types.Message):
-        application_id = int(message.text[message.text.index("_")+1:])
+        application_id = h.cut_command(message.text)
         application = get_application(application_id)
         if not application:
             bot.send_message(ADMIN_ID,
@@ -242,14 +242,12 @@ def get_current_debt(message: types.Message):
                          f"Сумма долга: {user['debt']:,}.",
                          reply_markup=keyboard_user)
 
-    value = get_user_pending_loans(message.from_user.id)
-    if value > 0:
+    if value := get_pending_loan_value(message.from_user.id):
         bot.send_message(message.chat.id,
                          f"Сумма в долг на рассмотрении: {value:,}.",
                          reply_markup=keyboard_user)
 
-    value = get_user_pending_payments(message.from_user.id)
-    if value > 0:
+    if value := get_pending_payments_value(message.from_user.id):
         bot.send_message(message.chat.id,
                          f"Оплаченная сумма на рассмотрении: {value:,}.",
                          reply_markup=keyboard_user)
@@ -286,7 +284,7 @@ def show_all_profiles(*args):
                          "На данный момент в базе данных нет пользователей.",
                          reply_markup=keyboard_admin)
         return
-    for user in get_all_users():
+    for user in users:
         bot.send_message(ADMIN_ID,
                          f"Имя: {h.get_user_full_name(**user)}\n"
                          f"Профиль: /profile_{user['id']}",
@@ -300,7 +298,7 @@ def show_profile(user: dict):
     application_history = ""
     for i, application in enumerate(user['applications'][::-1]):
         application_history += f"\n{h.get_application_info(**application)}\n"
-        if i == 4:
+        if i == 2:
             break
     if not application_history:
         application_history = "\nНет обращений"

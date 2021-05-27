@@ -15,6 +15,10 @@ def get_current_time() -> str:
     return datetime.now().strftime("%H:%M:%S - %d/%m/%Y")
 
 
+def cut_command(command: str) -> int:
+    return int(command[command.index("_") + 1:])
+
+
 # KEYBOARD BUTTONS
 
 # USER

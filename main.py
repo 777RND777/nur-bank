@@ -221,6 +221,7 @@ def make_request(message: types.Message, value: int, is_loan: bool):
 
 
 @bot.message_handler(func=lambda message: message.text.startswith("/cancel_"))
+@user_register_check
 @user_application_check
 def cancel_application(application: dict):
     remove_application(application['id'])
@@ -395,7 +396,7 @@ def remind_user(user: dict):
 
 
 def send_remind(id: int, debt: int, **kwargs):
-    if debt > 0:
+    if debt:
         bot.send_message(id,
                          f"Напоминание о долге!\n"
                          f"Ваш общий долг состовляет {debt:,}.",

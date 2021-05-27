@@ -102,7 +102,7 @@ def user_application_check(application_func):
             application_id = int(message.text[message.text.index("_")+1:])
         except ValueError:
             bot.send_message(message.from_user.id,
-                             "ID заявки был введен неверно.",
+                             "ID заявки был введен неправильно.",
                              reply_markup=keyboard_user)
             return
         application = get_application(application_id)
@@ -171,7 +171,6 @@ def loan_application(message: types.Message):
     if application := get_pending_loan_application(message.from_user.id):
         bot.send_message(message.chat.id,
                          f"У вас уже есть активная заявка на долг. Дождитесь ответа на неё.\n"
-                         f"Заявка:\n"
                          f"Сумма: {application['value']:,}\n"
                          f"Дата: {application['request_date']}\n"
                          f"Отмена заявки: /cancel_{application['id']}",

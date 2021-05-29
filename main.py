@@ -169,6 +169,12 @@ def loan_application(message: types.Message):
 @user_register_check
 @has_active_application
 def payment_application(message: types.Message):
+    user = get_user(message.from_user.id)
+    if not user['debt']:
+        bot.send_message(message.from_user.id,
+                         "У вас нет активных долгов.",
+                         reply_markup=keyboard_user)
+        return
     msg = bot.send_message(message.from_user.id,
                            "Какую сумму из вашего долга вы оплатили?",
                            reply_markup=keyboard_back)

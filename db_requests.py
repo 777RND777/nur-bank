@@ -21,7 +21,7 @@ def create_user(info: dict) -> dict:
     return c.get_json()
 
 
-def change_user(user_id: int, info: dict):
+def update_user(user_id: int, info: dict):
     _ = client.put(f"/users/{user_id}", json=info)
 
 

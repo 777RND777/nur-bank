@@ -106,7 +106,7 @@ def user_register_check(user_func):
             register_user(message)
         elif user['username'] != message.from_user.username:
             info = {"username": message.from_user.username}
-            change_user(message.from_user.id, info)
+            update_user(message.from_user.id, info)
         user_func(message)
     return wrapper
 
@@ -255,7 +255,7 @@ def change_nickname_handler(message: types.Message):
 @back_check
 def change_nickname(message: types.Message):
     info = {"nickname": message.text}
-    change_user(message.from_user.id, info)
+    update_user(message.from_user.id, info)
     bot.send_message(message.chat.id,
                      f"Ваше имя изменено на '{message.text}'.",
                      reply_markup=keyboard_user)
@@ -337,7 +337,7 @@ def approve_application(application: dict):
 
     user = get_user(application['user_id'])
     info = {"debt": user['debt'] + application['value']}
-    change_user(user['id'], info)
+    update_user(user['id'], info)
     action = "получение" if application['value'] > 0 else "погашение"
     bot.send_message(user['id'],
                      f"Ваша заявка на {action} суммы в размере {abs(application['value']):,} одобрена.\n"

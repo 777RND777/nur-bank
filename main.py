@@ -111,30 +111,6 @@ def user_register_check(user_func):
     return wrapper
 
 
-def user_application_id_check(application_func):
-    def wrapper(message: types.Message):
-        try:
-            application_id = h.cut_command(message.text)
-        except ValueError:
-            bot.send_message(message.from_user.id,
-                             "ID заявки был введен неправильно.",
-                             reply_markup=keyboard_user)
-            return
-        application = get_application(application_id)
-        if not application or application['user_id'] != message.from_user.id:
-            bot.send_message(message.from_user.id,
-                             "У вас нет заявки с таким ID.",
-                             reply_markup=keyboard_user)
-            return
-        if application['answer_date']:
-            bot.send_message(message.from_user.id,
-                             "На данную заявку уже ответили. Отмена заявки после получения ответа невозможна.",
-                             reply_markup=keyboard_user)
-            return
-        application_func(application)
-    return wrapper
-
-
 def admin_verification(admin_func):
     def wrapper(message: types.Message):
         if message.from_user.id != ADMIN_ID:
@@ -218,7 +194,7 @@ def make_request(user_id: int, value: int, is_loan: bool):
     application = create_application(info)
     bot.send_message(user_id,
                      f"{message_to_user}\n"
-                     f"Отмена заявки: /cancel_{application['id']}",
+                     f"Отмена заявки: /cancel",
                      reply_markup=keyboard_user)
 
     user = get_user(user_id)
@@ -229,10 +205,16 @@ def make_request(user_id: int, value: int, is_loan: bool):
                      reply_markup=keyboard_admin)
 
 
-@bot.message_handler(func=lambda message: message.text.startswith("/cancel_"))
+@bot.message_handler(commands=["cancel"])
 @user_register_check
-@user_application_id_check
-def cancel_application(application: dict):
+def cancel_application(message: types.Message):
+    application = get_pending_application(message.from_user.id)
+    if not application:
+        bot.send_message(message.from_user.id,
+                         "У вас сейчас нет активной заявки.\n"
+                         "Заявку, на которую уже ответили, нельзя отменить.",
+                         reply_markup=keyboard_user)
+        return
     remove_application(application['id'])
     bot.send_message(application['user_id'],
                      f"Заявка была отменена.",

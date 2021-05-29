@@ -19,6 +19,11 @@ def cut_command(command: str) -> int:
     return int(command[command.index("_") + 1:])
 
 
+# MESSAGES
+BACK = "назад"
+WRONG_COMMAND = "Вы неправильно ввели команду."
+
+
 # KEYBOARD BUTTONS
 
 # USER

@@ -31,6 +31,20 @@ def back_check(some_func):
     return wrapper
 
 
+def has_active_application(application_func):
+    def wrapper(message: types.Message):
+        if application := get_pending_application(message.from_user.id):
+            bot.send_message(message.chat.id,
+                             f"У вас уже есть активная заявка. Дождитесь ответа на неё.\n"
+                             f"Сумма: {abs(application['value']):,}\n"
+                             f"Дата: {application['request_date']}\n"
+                             f"Отмена заявки: /cancel_{application['id']}",
+                             reply_markup=keyboard_user)
+            return
+        application_func(message)
+    return wrapper
+
+
 def validation_check(money_func):
     @back_check
     def wrapper(message: types.Message, is_loan: bool):
@@ -168,36 +182,22 @@ def admin_application_id_check(application_func):
 
 @bot.message_handler(func=lambda message: message.text == h.LOAN_APPLICATION)
 @user_register_check
+@has_active_application
 def loan_application(message: types.Message):
-    if application := get_pending_application(message.from_user.id):
-        bot.send_message(message.chat.id,
-                         f"У вас уже есть активная заявка. Дождитесь ответа на неё.\n"
-                         f"Сумма: {application['value']:,}\n"
-                         f"Дата: {application['request_date']}\n"
-                         f"Отмена заявки: /cancel_{application['id']}",
-                         reply_markup=keyboard_user)
-    else:
-        msg = bot.send_message(message.chat.id,
-                               "Какую сумму вы хотите взять в долг?",
-                               reply_markup=keyboard_back)
-        bot.register_next_step_handler(msg, make_request, True)
+    msg = bot.send_message(message.chat.id,
+                           "Какую сумму вы хотите взять в долг?",
+                           reply_markup=keyboard_back)
+    bot.register_next_step_handler(msg, make_request, True)
 
 
 @bot.message_handler(func=lambda message: message.text == h.PAYMENT_APPLICATION)
 @user_register_check
+@has_active_application
 def payment_application(message: types.Message):
-    if application := get_pending_application(message.from_user.id):
-        bot.send_message(message.chat.id,
-                         f"У вас уже есть активная заявка. Дождитесь ответа на неё.\n"
-                         f"Сумма: {-application['value']:,}\n"
-                         f"Дата: {application['request_date']}\n"
-                         f"Отмена заявки: /cancel_{application['id']}",
-                         reply_markup=keyboard_user)
-    else:
-        msg = bot.send_message(message.chat.id,
-                               "Какую сумму из вашего долга вы оплатили?",
-                               reply_markup=keyboard_back)
-        bot.register_next_step_handler(msg, make_request, False)
+    msg = bot.send_message(message.chat.id,
+                           "Какую сумму из вашего долга вы оплатили?",
+                           reply_markup=keyboard_back)
+    bot.register_next_step_handler(msg, make_request, False)
 
 
 @validation_check

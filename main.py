@@ -97,7 +97,7 @@ def user_register_check(user_func):
     return wrapper
 
 
-def user_application_check(application_func):
+def user_application_id_check(application_func):
     def wrapper(message: types.Message):
         try:
             application_id = h.cut_command(message.text)
@@ -132,7 +132,7 @@ def admin_verification(admin_func):
     return wrapper
 
 
-def user_check(user_func):
+def admin_user_id_check(user_func):
     def wrapper(message: types.Message):
         user_id = h.cut_command(message.text)
         user = get_user(user_id)
@@ -145,7 +145,7 @@ def user_check(user_func):
     return wrapper
 
 
-def admin_application_check(application_func):
+def admin_application_id_check(application_func):
     def wrapper(message: types.Message):
         application_id = h.cut_command(message.text)
         application = get_application(application_id)
@@ -223,7 +223,7 @@ def make_request(user_id: int, value: int, is_loan: bool):
 
 @bot.message_handler(func=lambda message: message.text.startswith("/cancel_"))
 @user_register_check
-@user_application_check
+@user_application_id_check
 def cancel_application(application: dict):
     remove_application(application['id'])
     bot.send_message(application['user_id'],
@@ -295,7 +295,7 @@ def show_all_profiles(*args):
 
 @bot.message_handler(func=lambda message: message.text.startswith("/profile_"))
 @admin_verification
-@user_check
+@admin_user_id_check
 def show_profile(user: dict):
     application_history = ""
     for i, application in enumerate(user['applications'][::-1]):
@@ -337,7 +337,7 @@ def show_pending_applications(*args):
 
 @bot.message_handler(func=lambda message: message.text.startswith("/approve_"))
 @admin_verification
-@admin_application_check
+@admin_application_id_check
 def approve_application(application: dict):
     info = {
         "approved": True,
@@ -360,7 +360,7 @@ def approve_application(application: dict):
 
 @bot.message_handler(func=lambda message: message.text.startswith("/decline_"))
 @admin_verification
-@admin_application_check
+@admin_application_id_check
 def decline_application(application: dict):
     info = {"answer_date": h.get_current_time()}
     update_application(application['id'], info)
@@ -388,7 +388,7 @@ def remind_all_users(*args):
 
 @bot.message_handler(func=lambda message: message.text.startswith("/remind_"))
 @admin_verification
-@user_check
+@admin_user_id_check
 def remind_user(user: dict):
     send_remind(**user)
     bot.send_message(ADMIN_ID,

@@ -51,26 +51,17 @@ def remove_application(application_id: int):
     client.delete(f"/applications/{application_id}")
 
 
-def get_pending_loan_application(user_id: int) -> dict:
+def get_pending_application(user_id: int) -> dict:
     c = client.get(f"/users/{user_id}")
     for application in c.get_json()['applications']:
-        if application['value'] > 0 and not application['answer_date']:
+        if not application['answer_date']:
             return application
     return {}
 
 
-def get_pending_loan_value(user_id: int) -> int:
+def get_pending_value(user_id: int) -> int:
     c = client.get(f"/users/{user_id}")
     for application in c.get_json()['applications']:
-        if application['value'] > 0 and not application['answer_date']:
+        if not application['answer_date']:
             return application['value']
     return 0
-
-
-def get_pending_payments_value(user_id: int) -> int:
-    c = client.get(f"/users/{user_id}")
-    value = 0
-    for application in c.get_json()['applications']:
-        if application['value'] < 0 and not application['answer_date']:
-            value -= application['value']
-    return value

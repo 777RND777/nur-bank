@@ -169,9 +169,9 @@ def admin_application_id_check(application_func):
 @bot.message_handler(func=lambda message: message.text == h.LOAN_APPLICATION)
 @user_register_check
 def loan_application(message: types.Message):
-    if application := get_pending_loan_application(message.from_user.id):
+    if application := get_pending_application(message.from_user.id):
         bot.send_message(message.chat.id,
-                         f"У вас уже есть активная заявка на долг. Дождитесь ответа на неё.\n"
+                         f"У вас уже есть активная заявка. Дождитесь ответа на неё.\n"
                          f"Сумма: {application['value']:,}\n"
                          f"Дата: {application['request_date']}\n"
                          f"Отмена заявки: /cancel_{application['id']}",
@@ -186,10 +186,18 @@ def loan_application(message: types.Message):
 @bot.message_handler(func=lambda message: message.text == h.PAYMENT_APPLICATION)
 @user_register_check
 def payment_application(message: types.Message):
-    msg = bot.send_message(message.chat.id,
-                           "Какую сумму из вашего долга вы оплатили?",
-                           reply_markup=keyboard_back)
-    bot.register_next_step_handler(msg, make_request, False)
+    if application := get_pending_application(message.from_user.id):
+        bot.send_message(message.chat.id,
+                         f"У вас уже есть активная заявка. Дождитесь ответа на неё.\n"
+                         f"Сумма: {-application['value']:,}\n"
+                         f"Дата: {application['request_date']}\n"
+                         f"Отмена заявки: /cancel_{application['id']}",
+                         reply_markup=keyboard_user)
+    else:
+        msg = bot.send_message(message.chat.id,
+                               "Какую сумму из вашего долга вы оплатили?",
+                               reply_markup=keyboard_back)
+        bot.register_next_step_handler(msg, make_request, False)
 
 
 @validation_check
@@ -244,14 +252,11 @@ def get_current_debt(message: types.Message):
                          f"Сумма долга: {user['debt']:,}.",
                          reply_markup=keyboard_user)
 
-    if value := get_pending_loan_value(message.from_user.id):
+    value = get_pending_value(message.from_user.id)
+    if value:
+        application_status = "Сумма в долг" if value > 0 else "Оплаченная сумма"
         bot.send_message(message.chat.id,
-                         f"Сумма в долг на рассмотрении: {value:,}.",
-                         reply_markup=keyboard_user)
-
-    if value := get_pending_payments_value(message.from_user.id):
-        bot.send_message(message.chat.id,
-                         f"Оплаченная сумма на рассмотрении: {value:,}.",
+                         f"{application_status} на рассмотрении: {value:,}.",
                          reply_markup=keyboard_user)
 
 

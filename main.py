@@ -81,7 +81,7 @@ def validation_check(money_func):
                                        reply_markup=keyboard_back)
                 bot.register_next_step_handler(msg, wrapper, is_loan)
                 return
-        money_func(message, value, is_loan)
+        money_func(message.from_user.id, value, is_loan)
     return wrapper
 
 
@@ -193,7 +193,7 @@ def payment_application(message: types.Message):
 
 
 @validation_check
-def make_request(message: types.Message, value: int, is_loan: bool):
+def make_request(user_id: int, value: int, is_loan: bool):
     if is_loan:
         message_to_user = f"Ваша заявка на получение долга в размере {value:,} отправлена на рассмотрение."
         message_to_admin = "запросил(-а) в долг сумму"
@@ -203,17 +203,17 @@ def make_request(message: types.Message, value: int, is_loan: bool):
         value = -value
 
     info = {
-        "user_id": message.from_user.id,
+        "user_id": user_id,
         "value": value,
         "request_date": h.get_current_time(),
     }
     application = create_application(info)
-    bot.send_message(message.chat.id,
+    bot.send_message(user_id,
                      f"{message_to_user}\n"
                      f"Отмена заявки: /cancel_{application['id']}",
                      reply_markup=keyboard_user)
 
-    user = get_user(message.from_user.id)
+    user = get_user(user_id)
     bot.send_message(ADMIN_ID,
                      f"{h.get_user_full_name(**user)} {message_to_admin} {value:,}\n"
                      f"Одобрить:  /approve_{application['id']}\n"

@@ -313,15 +313,15 @@ def show_profile(user: dict):
 @admin_user_id_check
 def show_last_applications(user: dict):
     application_history = ""
-    stop = 3
     for i, application in enumerate(user['applications'][::-1]):
         if i == 3:
             break
         application_history += f"{h.get_application_info(**application)}\n\n"
     if not application_history:
-        application_history = "Пользовтель не оставлял заявки."
+        application_history = f"Пользователь не оставлял заявки."
+
     bot.send_message(ADMIN_ID,
-                     f"Последние {stop} заявки {h.get_user_full_name(**user)}:\n"
+                     f"Последние заявки {h.get_user_full_name(**user)}:\n"
                      f"{application_history}",
                      reply_markup=keyboard_admin)
 
@@ -347,11 +347,15 @@ def change_debt(message: types.Message, value: int, user: dict):
         "user_id": user['id'],
         "value": value,
         "request_date": current_time,
-        "answer_date": current_time,
-        "approved": True,
         "is_admin": True,
     }
-    _ = db.create_application(info)
+    application = db.create_application(info)
+    info = {
+        "answer_date": h.get_current_time(),
+        "approved": True,
+    }
+    db.update_application(application['id'], info)
+
     bot.send_message(ADMIN_ID,
                      f"Долг пользователя {h.get_user_full_name(**user)} был {action} на {abs(value):,}.\n"
                      f"Его нынешний долг составляет {new_value:,}",

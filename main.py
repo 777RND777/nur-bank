@@ -38,7 +38,7 @@ def has_active_application(application_func):
                              f"У вас уже есть активная заявка. Дождитесь ответа на неё.\n"
                              f"Сумма: {abs(application['value']):,}\n"
                              f"Дата: {application['request_date']}\n"
-                             f"Отмена заявки: /cancel_{application['id']}",
+                             f"Отмена заявки: /cancel",
                              reply_markup=keyboard_user)
             return
         application_func(message)
@@ -59,25 +59,25 @@ def user_register_check(user_func):
 
 def user_validation_check(money_func):
     @admin_validation_check
-    def wrapper(message: types.Message, value: int, is_loan: bool):
+    def wrapper(user_id: int, value: int, is_loan: bool):
         if value < 0:
-            msg = bot.send_message(message.from_user.id,
+            msg = bot.send_message(user_id,
                                    "Вы ввели отрицательную сумму.\n"
                                    "Введите сумму больше нуля.",
                                    reply_markup=keyboard_back)
             bot.register_next_step_handler(msg, wrapper, is_loan)
             return
         elif not is_loan:
-            user = db.get_user(message.from_user.id)
+            user = db.get_user(user_id)
             if user['debt'] < value:
-                msg = bot.send_message(message.from_user.id,
+                msg = bot.send_message(user_id,
                                        "Вы указали сумму, превышающую ваш нынешний долг.\n"
                                        "Введите сумму поменьше.\n"
                                        f"Ваш долг: {user['debt']}",
                                        reply_markup=keyboard_back)
                 bot.register_next_step_handler(msg, wrapper, is_loan)
                 return
-        money_func(message.from_user.id, value, is_loan)
+        money_func(user_id, value, is_loan)
     return wrapper
 
 
@@ -211,7 +211,7 @@ def make_request(user_id: int, value: int, is_loan: bool):
 
     user = db.get_user(user_id)
     bot.send_message(ADMIN_ID,
-                     f"{h.get_user_full_name(**user)} {message_to_admin} {value:,}\n"
+                     f"{h.get_user_full_name(**user)} {message_to_admin} {abs(value):,}\n"
                      f"Одобрить:  /approve_{application['id']}\n"
                      f"Отклонить: /decline_{application['id']}",
                      reply_markup=keyboard_admin)

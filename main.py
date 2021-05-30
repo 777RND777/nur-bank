@@ -297,21 +297,32 @@ def show_all_profiles(*args):
 @admin_verification
 @admin_user_id_check
 def show_profile(user: dict):
-    application_history = ""
-    for i, application in enumerate(user['applications'][::-1]):
-        application_history += f"\n{h.get_application_info(**application)}\n"
-        if i == 2:
-            break
-    if not application_history:
-        application_history = "\nНет обращений"
     bot.send_message(ADMIN_ID,
                      f"{user['username']}\n"
                      f"Имя: {h.get_user_full_name(**user)}\n"
                      f"ID: {user['id']}\n"
                      f"Долг: {user['debt']:,}\n"
                      f"Изменить долг: /debt_{user['id']}\n"
-                     f"Напомнить: /remind_{user['id']}\n\n"
-                     f"Последние обращения: {application_history}",
+                     f"Напомнить: /remind_{user['id']}\n"
+                     f"Заявки: /app_{user['id']}",
+                     reply_markup=keyboard_admin)
+
+
+@bot.message_handler(func=lambda message: message.text.startswith("/app_"))
+@admin_verification
+@admin_user_id_check
+def show_last_applications(user: dict):
+    application_history = ""
+    stop = 3
+    for i, application in enumerate(user['applications'][::-1]):
+        if i < 3:
+            break
+        application_history += f"{h.get_application_info(**application)}\n\n"
+    if not application_history:
+        application_history = "Пользовтель не оставлял заявки."
+    bot.send_message(ADMIN_ID,
+                     f"Последние {stop} заявки {h.get_user_full_name(**user)}:\n"
+                     f"{application_history}",
                      reply_markup=keyboard_admin)
 
 

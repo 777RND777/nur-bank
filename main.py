@@ -298,7 +298,7 @@ def show_all_profiles(*args):
 @admin_user_id_check
 def show_profile(user: dict):
     bot.send_message(ADMIN_ID,
-                     f"{user['username']}\n"
+                     f"@{user['username']}\n"
                      f"Имя: {h.get_user_full_name(**user)}\n"
                      f"ID: {user['id']}\n"
                      f"Долг: {user['debt']:,}\n"
@@ -315,7 +315,7 @@ def show_last_applications(user: dict):
     application_history = ""
     stop = 3
     for i, application in enumerate(user['applications'][::-1]):
-        if i < 3:
+        if i == 3:
             break
         application_history += f"{h.get_application_info(**application)}\n\n"
     if not application_history:

@@ -12,6 +12,7 @@ class Application(Base):
     request_date = db.Column(db.String(50), nullable=False)
     answer_date = db.Column(db.String(50))
     approved = db.Column(db.Boolean, default=False)
+    is_admin = db.Column(db.Boolean)
 
     @classmethod
     def get_list(cls):

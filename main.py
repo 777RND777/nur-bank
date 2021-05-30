@@ -202,6 +202,7 @@ def make_request(user_id: int, value: int, is_loan: bool):
         "user_id": user_id,
         "value": value,
         "request_date": h.get_current_time(),
+        "is_admin": False,
     }
     application = db.create_application(info)
     bot.send_message(user_id,
@@ -337,6 +338,7 @@ def change_debt(message: types.Message, value: int, user: dict):
         "request_date": current_time,
         "answer_date": current_time,
         "approved": True,
+        "is_admin": True,
     }
     _ = db.create_application(info)
     bot.send_message(ADMIN_ID,

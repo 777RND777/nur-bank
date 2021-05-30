@@ -9,6 +9,7 @@ class ApplicationSchema(Schema):
     request_date = fields.String(validate=[validate.Length(max=50)])
     answer_date = fields.String(validate=[validate.Length(max=50)])
     approved = fields.Boolean()
+    is_admin = fields.Boolean()
     # message = fields.String(dump_only=True)
 
 

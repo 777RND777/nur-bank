@@ -250,7 +250,7 @@ def get_current_debt(message: types.Message):
     if value:
         application_status = "Сумма в долг" if value > 0 else "Оплаченная сумма"
         bot.send_message(message.from_user.id,
-                         f"{application_status} на рассмотрении: {value:,}.",
+                         f"{application_status} на рассмотрении: {abs(value):,}.",
                          reply_markup=keyboard_user)
 
 

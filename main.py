@@ -329,12 +329,23 @@ def change_debt_handler(user: dict):
 def change_debt(message: types.Message, value: int, user: dict):
     new_value = user['debt'] + value
     action = "увеличен" if value > 0 else "уменьшен"
-    info = {"debt": new_value}
-    db.update_user(user['id'], info)
+    current_time = h.get_current_time()
+
+    info = {
+        "user_id": user['id'],
+        "value": value,
+        "request_date": current_time,
+        "answer_date": current_time,
+        "approved": True,
+    }
+    _ = db.create_application(info)
     bot.send_message(ADMIN_ID,
                      f"Долг пользователя {h.get_user_full_name(**user)} был {action} на {abs(value):,}.\n"
                      f"Его нынешний долг составляет {new_value:,}",
                      reply_markup=keyboard_admin)
+
+    info = {"debt": new_value}
+    db.update_user(user['id'], info)
     bot.send_message(user['id'],
                      f"Ваш долг был {action} администратором на {abs(value):,}.\n"
                      f"Новая сумма вашего долга составляет {new_value:,}",
@@ -367,8 +378,8 @@ def show_pending_applications(*args):
 @admin_application_id_check
 def approve_application(application: dict):
     info = {
-        "approved": True,
         "answer_date": h.get_current_time(),
+        "approved": True,
     }
     db.update_application(application['id'], info)
     bot.send_message(ADMIN_ID,

@@ -45,39 +45,22 @@ def has_active_application(application_func):
     return wrapper
 
 
-def validation_check(money_func):
-    @back_check
-    def wrapper(message: types.Message, is_loan: bool):
-        value = message.text
-        if value.endswith("к") or value.endswith("k"):
-            value = value[:-1] + "000"
-        elif len(value) < 4 or not value.endswith("000"):
-            value = value + "000"
-        try:
-            value = int(value)
-        except ValueError:
-            msg = bot.send_message(message.from_user.id,
-                                   "Вы неправильно ввели сумму.\n"
-                                   "Попробуйте еще раз.\n"
-                                   "Правильные примеры: '5000' / '5' / '5к'.",
-                                   reply_markup=keyboard_back)
-            bot.register_next_step_handler(msg, wrapper, is_loan)
-            return
-        if value > 5000000:
-            msg = bot.send_message(message.from_user.id,
-                                   "Вы указали слишком большую сумму.\n"
-                                   "Введите сумму поменьше.",
-                                   reply_markup=keyboard_back)
-            bot.register_next_step_handler(msg, wrapper, is_loan)
-            return
-        elif not value:  # value = 0
-            msg = bot.send_message(message.from_user.id,
-                                   "Вы ввели нулевую сумму.\n"
-                                   "Введите сумму больше нуля.",
-                                   reply_markup=keyboard_back)
-            bot.register_next_step_handler(msg, wrapper, is_loan)
-            return
-        elif value < 0:
+def user_register_check(user_func):
+    def wrapper(message: types.Message):
+        user = db.get_user(message.from_user.id)
+        if not user:
+            register_user(message)
+        elif user['username'] != message.from_user.username:
+            info = {"username": message.from_user.username}
+            db.update_user(message.from_user.id, info)
+        user_func(message)
+    return wrapper
+
+
+def user_validation_check(money_func):
+    @admin_validation_check
+    def wrapper(message: types.Message, value: int, is_loan: bool):
+        if value < 0:
             msg = bot.send_message(message.from_user.id,
                                    "Вы ввели отрицательную сумму.\n"
                                    "Введите сумму больше нуля.",
@@ -98,18 +81,6 @@ def validation_check(money_func):
     return wrapper
 
 
-def user_register_check(user_func):
-    def wrapper(message: types.Message):
-        user = db.get_user(message.from_user.id)
-        if not user:
-            register_user(message)
-        elif user['username'] != message.from_user.username:
-            info = {"username": message.from_user.username}
-            db.update_user(message.from_user.id, info)
-        user_func(message)
-    return wrapper
-
-
 def admin_verification(admin_func):
     def wrapper(message: types.Message):
         if message.from_user.id != ADMIN_ID:
@@ -118,6 +89,42 @@ def admin_verification(admin_func):
                              reply_markup=keyboard_admin)
             return
         admin_func(message)
+    return wrapper
+
+
+def admin_validation_check(money_func):
+    @back_check
+    def wrapper(message: types.Message, *args):
+        value = message.text
+        if value.endswith("к") or value.endswith("k"):
+            value = value[:-1] + "000"
+        elif len(value) < 4 or not value.endswith("000"):
+            value = value + "000"
+        try:
+            value = int(value)
+        except ValueError:
+            msg = bot.send_message(message.from_user.id,
+                                   "Вы неправильно ввели сумму.\n"
+                                   "Попробуйте еще раз.\n"
+                                   "Правильные примеры: '5000' / '5' / '5к'.",
+                                   reply_markup=keyboard_back)
+            bot.register_next_step_handler(msg, wrapper, *args)
+            return
+        if value > 5000000:
+            msg = bot.send_message(message.from_user.id,
+                                   "Вы указали слишком большую сумму.\n"
+                                   "Введите сумму поменьше.",
+                                   reply_markup=keyboard_back)
+            bot.register_next_step_handler(msg, wrapper, *args)
+            return
+        elif not value:  # value = 0
+            msg = bot.send_message(message.from_user.id,
+                                   "Вы ввели нулевую сумму.\n"
+                                   "Введите сумму больше нуля.",
+                                   reply_markup=keyboard_back)
+            bot.register_next_step_handler(msg, wrapper, *args)
+            return
+        money_func(message.from_user.id, value, *args)
     return wrapper
 
 
@@ -181,7 +188,7 @@ def payment_application(message: types.Message):
     bot.register_next_step_handler(msg, make_request, False)
 
 
-@validation_check
+@user_validation_check
 def make_request(user_id: int, value: int, is_loan: bool):
     if is_loan:
         message_to_user = f"Ваша заявка на получение долга в размере {value:,} отправлена на рассмотрение."
@@ -300,10 +307,38 @@ def show_profile(user: dict):
                      f"{user['username']}\n"
                      f"Имя: {h.get_user_full_name(**user)}\n"
                      f"ID: {user['id']}\n"
-                     f"Долг: {user['debt']}\n"
+                     f"Долг: {user['debt']:,}\n"
+                     f"Изменить долг: /debt_{user['id']}\n"
                      f"Напомнить: /remind_{user['id']}\n\n"
                      f"Последние обращения: {application_history}",
                      reply_markup=keyboard_admin)
+
+
+@bot.message_handler(func=lambda message: message.text.startswith("/debt_"))
+@admin_verification
+@admin_user_id_check
+def change_debt_handler(user: dict):
+    msg = bot.send_message(ADMIN_ID,
+                           f"На какую сумму вы хотите изменить долг {h.get_user_full_name(**user)}?\n"
+                           f"Его нынешний долг составляет {user['debt']:,}",
+                           reply_markup=keyboard_back)
+    bot.register_next_step_handler(msg, change_debt, user)
+
+
+@admin_validation_check
+def change_debt(message: types.Message, value: int, user: dict):
+    new_value = user['debt'] + value
+    action = "увеличен" if value > 0 else "уменьшен"
+    info = {"debt": new_value}
+    db.update_user(user['id'], info)
+    bot.send_message(ADMIN_ID,
+                     f"Долг пользователя {h.get_user_full_name(**user)} был {action} на {abs(value):,}.\n"
+                     f"Его нынешний долг составляет {new_value:,}",
+                     reply_markup=keyboard_admin)
+    bot.send_message(user['id'],
+                     f"Ваш долг был {action} администратором на {abs(value):,}.\n"
+                     f"Новая сумма вашего долга составляет {new_value:,}",
+                     reply_markup=keyboard_user)
 
 
 @bot.message_handler(func=lambda message: message.text == h.SHOW_PENDING_APPLICATIONS)

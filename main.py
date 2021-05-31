@@ -503,7 +503,8 @@ def register_user(message: types.Message):
     }
     user = db.create_user(info)
     bot.send_message(ADMIN_ID,
-                     f"Новый пользователь Нурбанка: {h.get_user_full_name(**user)}",
+                     f"Новый пользователь Нурбанка: {h.get_user_full_name(**user)}"
+                     f"Просмотр профиля: /profile_{message.from_user.id}",
                      reply_markup=keyboard_admin)
 
 

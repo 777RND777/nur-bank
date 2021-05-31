@@ -281,16 +281,15 @@ def change_nickname(message: types.Message):
 @admin_verification
 def show_all_profiles(*args):
     users = db.get_all_users()
-    if not users:
-        bot.send_message(ADMIN_ID,
-                         "На данный момент в базе данных нет пользователей.",
-                         reply_markup=keyboard_admin)
-        return
+    profiles = ""
     for user in users:
-        bot.send_message(ADMIN_ID,
-                         f"Имя: {h.get_user_full_name(**user)}\n"
-                         f"Профиль: /profile_{user['id']}",
-                         reply_markup=keyboard_admin)
+        profiles += f"Имя: {h.get_user_full_name(**user)}\n"\
+                    f"Профиль: /profile_{user['id']}\n\n"
+    if not profiles:
+        profiles = "На данный момент в базе данных нет пользователей."
+    bot.send_message(ADMIN_ID,
+                     profiles,
+                     reply_markup=keyboard_admin)
 
 
 @bot.message_handler(func=lambda message: message.text.startswith("/profile_"))
@@ -373,21 +372,19 @@ def change_debt(message: types.Message, value: int, user: dict):
 @admin_verification
 def show_pending_applications(*args):
     users = db.get_all_users()
-    found = False
+    pending_applications = ""
     for user in users:
         for application in user['applications']:
             if not application['answer_date']:
-                bot.send_message(ADMIN_ID,
-                                 f"Заявитель: {h.get_user_full_name(**user)}\n"
-                                 f"{h.get_application_info(**application)}\n"
-                                 f"Одобрить:  /approve_{application['id']}\n"
-                                 f"Отклонить: /decline_{application['id']}",
-                                 reply_markup=keyboard_admin)
-                found = True
-    if not found:
-        bot.send_message(ADMIN_ID,
-                         "На данный момент в базе данных нет ожидающих заявок.",
-                         reply_markup=keyboard_admin)
+                pending_applications += f"Заявитель: {h.get_user_full_name(**user)}\n"\
+                                        f"{h.get_application_info(**application)}\n" \
+                                        f"Одобрить:  /approve_{application['id']}\n" \
+                                        f"Отклонить: /decline_{application['id']}\n\n"
+    if not pending_applications:
+        pending_applications = "На данный момент в базе данных нет ожидающих заявок."
+    bot.send_message(ADMIN_ID,
+                     pending_applications,
+                     reply_markup = keyboard_admin)
 
 
 @bot.message_handler(func=lambda message: message.text.startswith("/approve_"))

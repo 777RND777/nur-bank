@@ -307,24 +307,6 @@ def show_profile(user: dict):
                      reply_markup=keyboard_admin)
 
 
-@bot.message_handler(func=lambda message: message.text.startswith("/app_"))
-@admin_verification
-@admin_user_id_check
-def show_last_applications(user: dict):
-    application_history = ""
-    for i, application in enumerate(user['applications'][::-1]):
-        if i == 3:
-            break
-        application_history += f"{h.get_application_info(**application)}\n\n"
-    if not application_history:
-        application_history = f"Пользователь не оставлял заявки."
-
-    bot.send_message(ADMIN_ID,
-                     f"Последние заявки {h.get_user_full_name(**user)}:\n"
-                     f"{application_history}",
-                     reply_markup=keyboard_admin)
-
-
 @bot.message_handler(func=lambda message: message.text.startswith("/debt_"))
 @admin_verification
 @admin_user_id_check
@@ -346,15 +328,11 @@ def change_debt(message: types.Message, value: int, user: dict):
         "user_id": user['id'],
         "value": value,
         "request_date": current_time,
+        "answer_date": current_time,
+        "approved": True,
         "is_admin": True,
     }
-    application = db.create_application(info)
-    info = {
-        "answer_date": h.get_current_time(),
-        "approved": True,
-    }
-    db.update_application(application['id'], info)
-
+    _ = db.create_application(info)
     bot.send_message(ADMIN_ID,
                      f"Долг пользователя {h.get_user_full_name(**user)} был {action} на {abs(value):,}.\n"
                      f"Его нынешний долг составляет {new_value:,}",
@@ -366,6 +344,27 @@ def change_debt(message: types.Message, value: int, user: dict):
                      f"Ваш долг был {action} администратором на {abs(value):,}.\n"
                      f"Новая сумма вашего долга составляет {new_value:,}",
                      reply_markup=keyboard_user)
+
+
+@bot.message_handler(func=lambda message: message.text.startswith("/app_"))
+@admin_verification
+@admin_user_id_check
+def show_last_applications(user: dict):
+    application_history = ""
+    count = 0
+    for application in user['applications'][::-1]:
+        if count == 3:
+            break
+        if application['approved']:
+            application_history += f"{h.get_application_info(**application)}\n\n"
+            count += 1
+    if not application_history:
+        application_history = f"Пользователь не оставлял заявки."
+
+    bot.send_message(ADMIN_ID,
+                     f"Последние заявки {h.get_user_full_name(**user)}:\n"
+                     f"{application_history}",
+                     reply_markup=keyboard_admin)
 
 
 @bot.message_handler(func=lambda message: message.text == h.SHOW_PENDING_APPLICATIONS)

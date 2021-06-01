@@ -279,7 +279,7 @@ def change_nickname(message: types.Message):
 
 @bot.message_handler(func=lambda message: message.text == h.SHOW_ALL_PROFILES)
 @admin_verification
-def show_all_profiles(*args):
+def show_all_profiles(*_):
     users = db.get_all_users()
     profiles = ""
     for user in users:
@@ -319,7 +319,7 @@ def change_debt_handler(user: dict):
 
 
 @admin_validation_check
-def change_debt(message: types.Message, value: int, user: dict):
+def change_debt(_: types.Message, value: int, user: dict):
     new_value = user['debt'] + value
     action = "увеличен" if value > 0 else "уменьшен"
     current_time = h.get_current_time()
@@ -369,7 +369,7 @@ def show_last_applications(user: dict):
 
 @bot.message_handler(func=lambda message: message.text == h.SHOW_PENDING_APPLICATIONS)
 @admin_verification
-def show_pending_applications(*args):
+def show_pending_applications(*_):
     users = db.get_all_users()
     pending_applications = ""
     for user in users:
@@ -383,7 +383,7 @@ def show_pending_applications(*args):
         pending_applications = "На данный момент в базе данных нет ожидающих заявок."
     bot.send_message(ADMIN_ID,
                      pending_applications,
-                     reply_markup = keyboard_admin)
+                     reply_markup=keyboard_admin)
 
 
 @bot.message_handler(func=lambda message: message.text.startswith("/approve_"))
@@ -429,7 +429,7 @@ def decline_application(application: dict):
 
 @bot.message_handler(func=lambda message: message.text == h.REMIND_ALL_USERS)
 @admin_verification
-def remind_all_users(*args):
+def remind_all_users(*_):
     for user in db.get_all_users():
         send_remind(**user)
     bot.send_message(ADMIN_ID,
@@ -447,7 +447,7 @@ def remind_user(user: dict):
                      reply_markup=keyboard_admin)
 
 
-def send_remind(id: int, debt: int, **kwargs):
+def send_remind(id: int, debt: int, **_):
     if debt:
         bot.send_message(id,
                          f"Напоминание о долге!\n"
@@ -457,7 +457,7 @@ def send_remind(id: int, debt: int, **kwargs):
 
 @bot.message_handler(func=lambda message: message.text == h.COUNT_DEBTS)
 @admin_verification
-def count_debts(*args):
+def count_debts(*_):
     value = 0
     for user in db.get_all_users():
         value += user['debt']

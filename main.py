@@ -13,8 +13,6 @@ keyboard_user.row(h.GET_CURRENT_DEBT, h.CHANGE_NICKNAME)
 keyboard_back = types.ReplyKeyboardMarkup()
 keyboard_back.add(h.BACK)
 keyboard_admin = types.ReplyKeyboardMarkup()
-keyboard_admin.row(h.SHOW_ALL_PROFILES, h.SHOW_PENDING_APPLICATIONS)
-keyboard_admin.row(h.REMIND_ALL_USERS, h.COUNT_DEBTS)
 
 
 # DECORATORS
@@ -277,7 +275,7 @@ def change_nickname(message: types.Message):
 # ADMIN
 
 
-@bot.message_handler(func=lambda message: message.text == h.SHOW_ALL_PROFILES)
+@bot.message_handler(commands=["profiles"])
 @admin_verification
 def show_all_profiles(*_):
     users = db.get_all_users()
@@ -367,7 +365,7 @@ def show_last_applications(user: dict):
                      reply_markup=keyboard_admin)
 
 
-@bot.message_handler(func=lambda message: message.text == h.SHOW_PENDING_APPLICATIONS)
+@bot.message_handler(commands=["applications"])
 @admin_verification
 def show_pending_applications(*_):
     users = db.get_all_users()
@@ -427,7 +425,7 @@ def decline_application(application: dict):
                      reply_markup=keyboard_user)
 
 
-@bot.message_handler(func=lambda message: message.text == h.REMIND_ALL_USERS)
+@bot.message_handler(commands=["remind"])
 @admin_verification
 def remind_all_users(*_):
     for user in db.get_all_users():
@@ -455,7 +453,7 @@ def send_remind(id: int, debt: int, **_):
                          reply_markup=keyboard_user)
 
 
-@bot.message_handler(func=lambda message: message.text == h.COUNT_DEBTS)
+@bot.message_handler(commands=["count"])
 @admin_verification
 def count_debts(*_):
     value = 0
@@ -467,6 +465,14 @@ def count_debts(*_):
 
 
 # COMMON
+
+
+@bot.message_handler(commands=["commands"])
+def show_commands(message: types.Message):
+    if message.from_user.id == ADMIN_ID:
+        bot.send_message(message.from_user.id,
+                         h.ADMIN_COMMANDS,
+                         reply_markup=keyboard_admin)
 
 
 @bot.message_handler(commands=["start"])

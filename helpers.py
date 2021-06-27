@@ -33,7 +33,11 @@ GET_CURRENT_DEBT = "посмотреть сумму долга"
 CHANGE_NICKNAME = "изменить имя"
 
 # ADMIN
-SHOW_ALL_PROFILES = "пользователи"
-SHOW_PENDING_APPLICATIONS = "ожидающие заявки"
-REMIND_ALL_USERS = "напомнить о долге"
-COUNT_DEBTS = "общая сумма в долгах"
+ADMIN_COMMANDS = '''
+/profiles - пользователи
+/applications - ожидающие заявки
+/remind - напомнить о долге
+/count - общая сумма в долгах
+
+/commands - список команд
+'''

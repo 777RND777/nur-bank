@@ -27,10 +27,14 @@ WRONG_COMMAND = "Вы неправильно ввели команду."
 # KEYBOARD BUTTONS
 
 # USER
-LOAN_APPLICATION = "оставить заявку на долг"
-PAYMENT_APPLICATION = "уведомить об оплате долга"
-GET_CURRENT_DEBT = "посмотреть сумму долга"
-CHANGE_NICKNAME = "изменить имя"
+USER_COMMANDS = '''
+/loan - оставить заявку на долг
+/payment - уведомить об оплате долга
+/debt - посмотреть сумму долга
+/name - изменить имя
+
+/commands - список команд
+'''
 
 # ADMIN
 ADMIN_COMMANDS = '''

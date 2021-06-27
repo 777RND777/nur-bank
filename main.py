@@ -7,12 +7,8 @@ import telebot
 
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 
-keyboard_user = types.ReplyKeyboardMarkup()
-keyboard_user.row(h.LOAN_APPLICATION, h.PAYMENT_APPLICATION)
-keyboard_user.row(h.GET_CURRENT_DEBT, h.CHANGE_NICKNAME)
 keyboard_back = types.ReplyKeyboardMarkup()
 keyboard_back.add(h.BACK)
-keyboard_admin = types.ReplyKeyboardMarkup()
 
 
 # DECORATORS
@@ -22,8 +18,7 @@ def back_check(some_func):
     def wrapper(message: types.Message, *args):
         if message.text == h.BACK:
             bot.send_message(message.from_user.id,
-                             "Вы вернулись в меню",
-                             reply_markup=keyboard_user)
+                             "Вы вернулись в меню")
             return
         some_func(message, *args)
     return wrapper
@@ -36,8 +31,7 @@ def has_active_application(application_func):
                              f"У вас уже есть активная заявка. Дождитесь ответа на неё.\n"
                              f"Сумма: {abs(application['value']):,}\n"
                              f"Дата: {application['request_date']}\n"
-                             f"Отмена заявки: /cancel",
-                             reply_markup=keyboard_user)
+                             f"Отмена заявки: /cancel")
             return
         application_func(message)
     return wrapper
@@ -83,8 +77,7 @@ def admin_verification(admin_func):
     def wrapper(message: types.Message):
         if message.from_user.id != ADMIN_ID:
             bot.send_message(message.from_user.id,
-                             h.WRONG_COMMAND,
-                             reply_markup=keyboard_admin)
+                             h.WRONG_COMMAND)
             return
         admin_func(message)
     return wrapper
@@ -132,8 +125,7 @@ def admin_user_id_check(user_func):
         user = db.get_user(user_id)
         if not user:
             bot.send_message(ADMIN_ID,
-                             "Нет пользователя с таким ID.",
-                             reply_markup=keyboard_admin)
+                             "Нет пользователя с таким ID.")
             return
         user_func(user)
     return wrapper
@@ -145,13 +137,11 @@ def admin_application_id_check(application_func):
         application = db.get_application(application_id)
         if not application:
             bot.send_message(ADMIN_ID,
-                             "Нет заявки с таким ID.",
-                             reply_markup=keyboard_admin)
+                             "Нет заявки с таким ID.")
             return
         if application['answer_date']:
             bot.send_message(ADMIN_ID,
-                             "Вы уже ответили на данную заявку.",
-                             reply_markup=keyboard_admin)
+                             "Вы уже ответили на данную заявку.")
             return
         application_func(application)
     return wrapper
@@ -160,7 +150,7 @@ def admin_application_id_check(application_func):
 # USER
 
 
-@bot.message_handler(func=lambda message: message.text == h.LOAN_APPLICATION)
+@bot.message_handler(commands=["loan"])
 @user_register_check
 @has_active_application
 def loan_application(message: types.Message):
@@ -170,15 +160,14 @@ def loan_application(message: types.Message):
     bot.register_next_step_handler(msg, make_request, True)
 
 
-@bot.message_handler(func=lambda message: message.text == h.PAYMENT_APPLICATION)
+@bot.message_handler(commands=["payment"])
 @user_register_check
 @has_active_application
 def payment_application(message: types.Message):
     user = db.get_user(message.from_user.id)
     if not user['debt']:
         bot.send_message(message.from_user.id,
-                         "У вас нет активных долгов.",
-                         reply_markup=keyboard_user)
+                         "У вас нет активных долгов.")
         return
     msg = bot.send_message(message.from_user.id,
                            "Какую сумму из вашего долга вы оплатили?",
@@ -205,15 +194,13 @@ def make_request(user_id: int, value: int, is_loan: bool):
     application = db.create_application(info)
     bot.send_message(user_id,
                      f"{message_to_user}\n"
-                     f"Отмена заявки: /cancel",
-                     reply_markup=keyboard_user)
+                     f"Отмена заявки: /cancel")
 
     user = db.get_user(user_id)
     bot.send_message(ADMIN_ID,
                      f"{h.get_user_full_name(**user)} {message_to_admin} {abs(value):,}\n"
                      f"Одобрить:  /approve_{application['id']}\n"
-                     f"Отклонить: /decline_{application['id']}",
-                     reply_markup=keyboard_admin)
+                     f"Отклонить: /decline_{application['id']}")
 
 
 @bot.message_handler(commands=["cancel"])
@@ -223,37 +210,32 @@ def cancel_application(message: types.Message):
     if not application:
         bot.send_message(message.from_user.id,
                          "У вас сейчас нет активной заявки.\n"
-                         "Заявку, на которую уже ответили, нельзя отменить.",
-                         reply_markup=keyboard_user)
+                         "Заявку, на которую уже ответили, нельзя отменить.")
         return
     db.remove_application(application['id'])
     bot.send_message(application['user_id'],
-                     f"Заявка была отменена.",
-                     reply_markup=keyboard_user)
+                     f"Заявка была отменена.")
 
 
-@bot.message_handler(func=lambda message: message.text == h.GET_CURRENT_DEBT)
+@bot.message_handler(commands=["debt"])
 @user_register_check
 def get_current_debt(message: types.Message):
     user = db.get_user(message.from_user.id)
     if not user['debt']:
         bot.send_message(message.from_user.id,
-                         "У вас нет активных долгов.",
-                         reply_markup=keyboard_user)
+                         "У вас нет активных долгов.")
     else:
         bot.send_message(message.from_user.id,
-                         f"Сумма долга: {user['debt']:,}.",
-                         reply_markup=keyboard_user)
+                         f"Сумма долга: {user['debt']:,}.")
 
     value = db.get_pending_value(message.from_user.id)
     if value:
         application_status = "Сумма в долг" if value > 0 else "Оплаченная сумма"
         bot.send_message(message.from_user.id,
-                         f"{application_status} на рассмотрении: {abs(value):,}.",
-                         reply_markup=keyboard_user)
+                         f"{application_status} на рассмотрении: {abs(value):,}.")
 
 
-@bot.message_handler(func=lambda message: message.text == h.CHANGE_NICKNAME)
+@bot.message_handler(commands=["name"])
 @user_register_check
 def change_nickname_handler(message: types.Message):
     msg = bot.send_message(message.from_user.id,
@@ -268,8 +250,7 @@ def change_nickname(message: types.Message):
     info = {"nickname": message.text}
     db.update_user(message.from_user.id, info)
     bot.send_message(message.from_user.id,
-                     f"Ваше имя изменено на '{message.text}'.",
-                     reply_markup=keyboard_user)
+                     f"Ваше имя изменено на '{message.text}'.")
 
 
 # ADMIN
@@ -286,8 +267,7 @@ def show_all_profiles(*_):
     if not profiles:
         profiles = "На данный момент в базе данных нет пользователей."
     bot.send_message(ADMIN_ID,
-                     profiles,
-                     reply_markup=keyboard_admin)
+                     profiles)
 
 
 @bot.message_handler(func=lambda message: message.text.startswith("/profile_"))
@@ -301,8 +281,7 @@ def show_profile(user: dict):
                      f"Долг: {user['debt']:,}\n"
                      f"Изменить долг: /debt_{user['id']}\n"
                      f"Напомнить: /remind_{user['id']}\n"
-                     f"Заявки: /app_{user['id']}",
-                     reply_markup=keyboard_admin)
+                     f"Заявки: /app_{user['id']}")
 
 
 @bot.message_handler(func=lambda message: message.text.startswith("/debt_"))
@@ -333,15 +312,13 @@ def change_debt(_: types.Message, value: int, user: dict):
     _ = db.create_application(info)
     bot.send_message(ADMIN_ID,
                      f"Долг пользователя {h.get_user_full_name(**user)} был {action} на {abs(value):,}.\n"
-                     f"Его нынешний долг составляет {new_value:,}",
-                     reply_markup=keyboard_admin)
+                     f"Его нынешний долг составляет {new_value:,}")
 
     info = {"debt": new_value}
     db.update_user(user['id'], info)
     bot.send_message(user['id'],
                      f"Ваш долг был {action} администратором на {abs(value):,}.\n"
-                     f"Новая сумма вашего долга составляет {new_value:,}",
-                     reply_markup=keyboard_user)
+                     f"Новая сумма вашего долга составляет {new_value:,}")
 
 
 @bot.message_handler(func=lambda message: message.text.startswith("/app_"))
@@ -361,8 +338,7 @@ def show_last_applications(user: dict):
 
     bot.send_message(ADMIN_ID,
                      f"Последние заявки {h.get_user_full_name(**user)}:\n"
-                     f"{application_history}",
-                     reply_markup=keyboard_admin)
+                     f"{application_history}")
 
 
 @bot.message_handler(commands=["applications"])
@@ -380,8 +356,7 @@ def show_pending_applications(*_):
     if not pending_applications:
         pending_applications = "На данный момент в базе данных нет ожидающих заявок."
     bot.send_message(ADMIN_ID,
-                     pending_applications,
-                     reply_markup=keyboard_admin)
+                     pending_applications)
 
 
 @bot.message_handler(func=lambda message: message.text.startswith("/approve_"))
@@ -394,8 +369,7 @@ def approve_application(application: dict):
     }
     db.update_application(application['id'], info)
     bot.send_message(ADMIN_ID,
-                     f"Вы одобрили заявку.",
-                     reply_markup=keyboard_admin)
+                     f"Вы одобрили заявку.")
 
     user = db.get_user(application['user_id'])
     info = {"debt": user['debt'] + application['value']}
@@ -403,8 +377,7 @@ def approve_application(application: dict):
     action = "получение" if application['value'] > 0 else "погашение"
     bot.send_message(user['id'],
                      f"Ваша заявка на {action} суммы в размере {abs(application['value']):,} одобрена.\n"
-                     f"Ваш общий долг составляет {user['debt'] + application['value']:,}.",
-                     reply_markup=keyboard_user)
+                     f"Ваш общий долг составляет {user['debt'] + application['value']:,}.")
 
 
 @bot.message_handler(func=lambda message: message.text.startswith("/decline_"))
@@ -414,15 +387,13 @@ def decline_application(application: dict):
     info = {"answer_date": h.get_current_time()}
     db.update_application(application['id'], info)
     bot.send_message(ADMIN_ID,
-                     f"Вы отклонили заявку.",
-                     reply_markup=keyboard_admin)
+                     f"Вы отклонили заявку.")
 
     user = db.get_user(application['user_id'])
     action = "получение" if application['value'] > 0 else "погашение"
     bot.send_message(user['id'],
                      f"Ваша заявка на {action} суммы в размере {abs(application['value']):,} отклонена.\n"
-                     f"Ваш общий долг составляет {user['debt']:,}.",
-                     reply_markup=keyboard_user)
+                     f"Ваш общий долг составляет {user['debt']:,}.")
 
 
 @bot.message_handler(commands=["remind"])
@@ -431,8 +402,7 @@ def remind_all_users(*_):
     for user in db.get_all_users():
         send_remind(**user)
     bot.send_message(ADMIN_ID,
-                     "Напоминания было отправлены",
-                     reply_markup=keyboard_admin)
+                     "Напоминания было отправлены")
 
 
 @bot.message_handler(func=lambda message: message.text.startswith("/remind_"))
@@ -441,16 +411,14 @@ def remind_all_users(*_):
 def remind_user(user: dict):
     send_remind(**user)
     bot.send_message(ADMIN_ID,
-                     "Напоминание было отправлено",
-                     reply_markup=keyboard_admin)
+                     "Напоминание было отправлено")
 
 
 def send_remind(id: int, debt: int, **_):
     if debt:
         bot.send_message(id,
                          f"Напоминание о долге!\n"
-                         f"Ваш общий долг состовляет {debt:,}.",
-                         reply_markup=keyboard_user)
+                         f"Ваш общий долг состовляет {debt:,}.")
 
 
 @bot.message_handler(commands=["count"])
@@ -460,40 +428,35 @@ def count_debts(*_):
     for user in db.get_all_users():
         value += user['debt']
     bot.send_message(ADMIN_ID,
-                     f"Общая сумма в долгах: {value:,}.",
-                     reply_markup=keyboard_admin)
+                     f"Общая сумма в долгах: {value:,}.")
 
 
 # COMMON
-
-
-@bot.message_handler(commands=["commands"])
-def show_commands(message: types.Message):
-    if message.from_user.id == ADMIN_ID:
-        bot.send_message(message.from_user.id,
-                         h.ADMIN_COMMANDS,
-                         reply_markup=keyboard_admin)
 
 
 @bot.message_handler(commands=["start"])
 def start_message(message: types.Message):
     if message.from_user.id == ADMIN_ID:
         bot.send_message(message.from_user.id,
-                         f"С возвращением, НурБанк!",
-                         reply_markup=keyboard_admin)
+                         f"С возвращением, НурБанк!")
         return
 
     user = db.get_user(message.from_user.id)
     if user:
         bot.send_message(message.from_user.id,
-                         f"С возвращением в НурБанк, {user['nickname']}!",
-                         reply_markup=keyboard_user)
+                         f"С возвращением в НурБанк, {user['nickname']}!")
         return
 
     register_user(message)
     bot.send_message(message.from_user.id,
-                     f"Приветствуем вас в НурБанке, {message.from_user.username}!",
-                     reply_markup=keyboard_user)
+                     f"Приветствуем вас в НурБанке, {message.from_user.username}!")
+
+
+@bot.message_handler(commands=["commands"])
+def show_commands(message: types.Message):
+    if message.from_user.id == ADMIN_ID:
+        bot.send_message(message.from_user.id,
+                         h.ADMIN_COMMANDS)
 
 
 def register_user(message: types.Message):
@@ -506,20 +469,17 @@ def register_user(message: types.Message):
     user = db.create_user(info)
     bot.send_message(ADMIN_ID,
                      f"Новый пользователь Нурбанка: {h.get_user_full_name(**user)}"
-                     f"Просмотр профиля: /profile_{message.from_user.id}",
-                     reply_markup=keyboard_admin)
+                     f"Просмотр профиля: /profile_{message.from_user.id}")
 
 
 @bot.message_handler(content_types=["text"])
 def send_text(message: types.Message):
     if message.from_user.id == ADMIN_ID:
         bot.send_message(ADMIN_ID,
-                         h.WRONG_COMMAND,
-                         reply_markup=keyboard_admin)
+                         h.WRONG_COMMAND)
     else:
         bot.send_message(message.from_user.id,
-                         h.WRONG_COMMAND,
-                         reply_markup=keyboard_user)
+                         h.WRONG_COMMAND)
 
 
 if __name__ == "__main__":

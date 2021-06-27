@@ -20,11 +20,11 @@ def cut_command(command: str) -> int:
 
 
 # MESSAGES
-BACK = "назад"
 WRONG_COMMAND = "Вы неправильно ввели команду."
+BACK = "Отмена - /back"
 
 
-# KEYBOARD BUTTONS
+# COMMANDS
 
 # USER
 USER_COMMANDS = '''

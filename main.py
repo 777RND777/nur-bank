@@ -7,16 +7,13 @@ import telebot
 
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 
-keyboard_back = types.ReplyKeyboardMarkup()
-keyboard_back.add(h.BACK)
-
 
 # DECORATORS
 
 
 def back_check(some_func):
     def wrapper(message: types.Message, *args):
-        if message.text == h.BACK:
+        if message.text == "/back":
             bot.send_message(message.from_user.id,
                              "Вы вернулись в меню")
             return
@@ -55,8 +52,8 @@ def user_validation_check(money_func):
         if value < 0:
             msg = bot.send_message(user_id,
                                    "Вы ввели отрицательную сумму.\n"
-                                   "Введите сумму больше нуля.",
-                                   reply_markup=keyboard_back)
+                                   "Введите сумму больше нуля.\n"
+                                   "{h.BACK")
             bot.register_next_step_handler(msg, wrapper, is_loan)
             return
         elif not is_loan:
@@ -65,8 +62,8 @@ def user_validation_check(money_func):
                 msg = bot.send_message(user_id,
                                        "Вы указали сумму, превышающую ваш нынешний долг.\n"
                                        "Введите сумму поменьше.\n"
-                                       f"Ваш долг: {user['debt']}",
-                                       reply_markup=keyboard_back)
+                                       f"Ваш долг: {user['debt']}\n"
+                                       f"{h.BACK}")
                 bot.register_next_step_handler(msg, wrapper, is_loan)
                 return
         money_func(user_id, value, is_loan)
@@ -97,22 +94,22 @@ def admin_validation_check(money_func):
             msg = bot.send_message(message.from_user.id,
                                    "Вы неправильно ввели сумму.\n"
                                    "Попробуйте еще раз.\n"
-                                   "Правильные примеры: '5000' / '5' / '5к'.",
-                                   reply_markup=keyboard_back)
+                                   "Правильные примеры: '5000' / '5' / '5к'.\n"
+                                   "{h.BACK")
             bot.register_next_step_handler(msg, wrapper, *args)
             return
         if value > 5000000:
             msg = bot.send_message(message.from_user.id,
                                    "Вы указали слишком большую сумму.\n"
-                                   "Введите сумму поменьше.",
-                                   reply_markup=keyboard_back)
+                                   "Введите сумму поменьше.\n"
+                                   "{h.BACK")
             bot.register_next_step_handler(msg, wrapper, *args)
             return
         elif not value:  # value = 0
             msg = bot.send_message(message.from_user.id,
                                    "Вы ввели нулевую сумму.\n"
-                                   "Введите сумму больше нуля.",
-                                   reply_markup=keyboard_back)
+                                   "Введите сумму больше нуля.\n"
+                                   "{h.BACK")
             bot.register_next_step_handler(msg, wrapper, *args)
             return
         money_func(message.from_user.id, value, *args)
@@ -155,8 +152,8 @@ def admin_application_id_check(application_func):
 @has_active_application
 def loan_application(message: types.Message):
     msg = bot.send_message(message.from_user.id,
-                           "Какую сумму вы хотите взять в долг?",
-                           reply_markup=keyboard_back)
+                           "Какую сумму вы хотите взять в долг?\n"
+                           "{h.BACK")
     bot.register_next_step_handler(msg, make_request, True)
 
 
@@ -170,8 +167,8 @@ def payment_application(message: types.Message):
                          "У вас нет активных долгов.")
         return
     msg = bot.send_message(message.from_user.id,
-                           "Какую сумму из вашего долга вы оплатили?",
-                           reply_markup=keyboard_back)
+                           "Какую сумму из вашего долга вы оплатили?\n"
+                           "{h.BACK")
     bot.register_next_step_handler(msg, make_request, False)
 
 
@@ -240,8 +237,7 @@ def get_current_debt(message: types.Message):
 def change_nickname_handler(message: types.Message):
     msg = bot.send_message(message.from_user.id,
                            "Как вы хотите, чтобы к вам обращались?\n"
-                           f"Имя '{h.BACK}' не разрешено. Вы будете отправлены назад.",
-                           reply_markup=keyboard_back)
+                           f"{h.BACK}")
     bot.register_next_step_handler(msg, change_nickname)
 
 
@@ -290,8 +286,8 @@ def show_profile(user: dict):
 def change_debt_handler(user: dict):
     msg = bot.send_message(ADMIN_ID,
                            f"На какую сумму вы хотите изменить долг {h.get_user_full_name(**user)}?\n"
-                           f"Его нынешний долг составляет {user['debt']:,}",
-                           reply_markup=keyboard_back)
+                           f"Его нынешний долг составляет {user['debt']:,}\n"
+                           f"{h.BACK}")
     bot.register_next_step_handler(msg, change_debt, user)
 
 

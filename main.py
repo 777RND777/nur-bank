@@ -435,17 +435,20 @@ def start_message(message: types.Message):
     if message.from_user.id == ADMIN_ID:
         bot.send_message(message.from_user.id,
                          f"С возвращением, НурБанк!")
+        show_commands(message)
         return
 
     user = db.get_user(message.from_user.id)
     if user:
         bot.send_message(message.from_user.id,
                          f"С возвращением в НурБанк, {user['nickname']}!")
+        show_commands(message)
         return
 
     register_user(message)
     bot.send_message(message.from_user.id,
                      f"Приветствуем вас в НурБанке, {message.from_user.username}!")
+    show_commands(message)
 
 
 @bot.message_handler(commands=["commands"])
@@ -453,6 +456,9 @@ def show_commands(message: types.Message):
     if message.from_user.id == ADMIN_ID:
         bot.send_message(message.from_user.id,
                          h.ADMIN_COMMANDS)
+        return
+    bot.send_message(message.from_user.id,
+                     h.USER_COMMANDS)
 
 
 def register_user(message: types.Message):

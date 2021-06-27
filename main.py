@@ -73,8 +73,7 @@ def user_validation_check(money_func):
 def admin_verification(admin_func):
     def wrapper(message: types.Message):
         if message.from_user.id != ADMIN_ID:
-            bot.send_message(message.from_user.id,
-                             h.WRONG_COMMAND)
+            send_text(message)
             return
         admin_func(message)
     return wrapper
@@ -476,12 +475,8 @@ def register_user(message: types.Message):
 
 @bot.message_handler(content_types=["text"])
 def send_text(message: types.Message):
-    if message.from_user.id == ADMIN_ID:
-        bot.send_message(ADMIN_ID,
-                         h.WRONG_COMMAND)
-    else:
-        bot.send_message(message.from_user.id,
-                         h.WRONG_COMMAND)
+    bot.send_message(message.from_user.id,
+                     h.WRONG_COMMAND)
 
 
 if __name__ == "__main__":

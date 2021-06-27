@@ -15,7 +15,7 @@ def back_check(some_func):
     def wrapper(message: types.Message, *args):
         if message.text == "/back":
             bot.send_message(message.from_user.id,
-                             "Вы вернулись в меню")
+                             "Операция была отменена.")
             return
         some_func(message, *args)
     return wrapper
@@ -53,7 +53,7 @@ def user_validation_check(money_func):
             msg = bot.send_message(user_id,
                                    "Вы ввели отрицательную сумму.\n"
                                    "Введите сумму больше нуля.\n"
-                                   "{h.BACK")
+                                   f"{h.BACK}")
             bot.register_next_step_handler(msg, wrapper, is_loan)
             return
         elif not is_loan:
@@ -73,7 +73,7 @@ def user_validation_check(money_func):
 def admin_verification(admin_func):
     def wrapper(message: types.Message):
         if message.from_user.id != ADMIN_ID:
-            send_text(message)
+            unknown_command(message)
             return
         admin_func(message)
     return wrapper
@@ -94,21 +94,21 @@ def admin_validation_check(money_func):
                                    "Вы неправильно ввели сумму.\n"
                                    "Попробуйте еще раз.\n"
                                    "Правильные примеры: '5000' / '5' / '5к'.\n"
-                                   "{h.BACK")
+                                   f"{h.BACK}")
             bot.register_next_step_handler(msg, wrapper, *args)
             return
         if value > 5000000:
             msg = bot.send_message(message.from_user.id,
                                    "Вы указали слишком большую сумму.\n"
                                    "Введите сумму поменьше.\n"
-                                   "{h.BACK")
+                                   f"{h.BACK}")
             bot.register_next_step_handler(msg, wrapper, *args)
             return
         elif not value:  # value = 0
             msg = bot.send_message(message.from_user.id,
                                    "Вы ввели нулевую сумму.\n"
                                    "Введите сумму больше нуля.\n"
-                                   "{h.BACK")
+                                   f"{h.BACK}")
             bot.register_next_step_handler(msg, wrapper, *args)
             return
         money_func(message.from_user.id, value, *args)
@@ -152,7 +152,7 @@ def admin_application_id_check(application_func):
 def loan_application(message: types.Message):
     msg = bot.send_message(message.from_user.id,
                            "Какую сумму вы хотите взять в долг?\n"
-                           "{h.BACK")
+                           f"{h.BACK}")
     bot.register_next_step_handler(msg, make_request, True)
 
 
@@ -167,7 +167,7 @@ def payment_application(message: types.Message):
         return
     msg = bot.send_message(message.from_user.id,
                            "Какую сумму из вашего долга вы оплатили?\n"
-                           "{h.BACK")
+                           f"{h.BACK}")
     bot.register_next_step_handler(msg, make_request, False)
 
 
@@ -251,6 +251,21 @@ def change_nickname(message: types.Message):
 # ADMIN
 
 
+@bot.message_handler(commands=["debtors"])
+@admin_verification
+def show_all_debtors(*_):
+    users = db.get_all_users()
+    debtors = ""
+    for user in users:
+        debtors += f"Имя: {h.get_user_full_name(**user)}\n"\
+                   f"Сумма: {user['debt']}\n" \
+                   f"Профиль: /profile_{user['id']}\n\n"
+    if not debtors:
+        debtors = "На данный момент должников нет."
+    bot.send_message(ADMIN_ID,
+                     debtors)
+
+
 @bot.message_handler(commands=["profiles"])
 @admin_verification
 def show_all_profiles(*_):
@@ -283,15 +298,6 @@ def show_pending_applications(*_):
                      pending_applications)
 
 
-@bot.message_handler(commands=["remind"])
-@admin_verification
-def remind_all_users(*_):
-    for user in db.get_all_users():
-        send_remind(**user)
-    bot.send_message(ADMIN_ID,
-                     "Напоминания было отправлены")
-
-
 @bot.message_handler(commands=["count"])
 @admin_verification
 def count_debts(*_):
@@ -300,6 +306,32 @@ def count_debts(*_):
         value += user['debt']
     bot.send_message(ADMIN_ID,
                      f"Общая сумма в долгах: {value:,}.")
+
+
+@bot.message_handler(commands=["message"])
+@admin_verification
+def send_message_handler(*_):
+    msg = bot.send_message(ADMIN_ID,
+                           "Какое сообщение вы хотите отправить всем пользователям?\n"
+                           f"{h.BACK}")
+    bot.register_next_step_handler(msg, send_message)
+
+
+def send_message(message: types.Message):
+    for user in db.get_all_users():
+        bot.send_message(user['id'],
+                         message.text)
+    bot.send_message(ADMIN_ID,
+                     "Сообщения были отправлены.")
+
+
+@bot.message_handler(commands=["remind"])
+@admin_verification
+def remind_all_users(*_):
+    for user in db.get_all_users():
+        send_remind(**user)
+    bot.send_message(ADMIN_ID,
+                     "Напоминания было отправлены.")
 
 
 @bot.message_handler(func=lambda message: message.text.startswith("/profile_"))
@@ -322,7 +354,7 @@ def show_profile(user: dict):
 def change_debt_handler(user: dict):
     msg = bot.send_message(ADMIN_ID,
                            f"На какую сумму вы хотите изменить долг {h.get_user_full_name(**user)}?\n"
-                           f"Его нынешний долг составляет {user['debt']:,}\n"
+                           f"Его нынешний долг составляет {user['debt']:,}.\n"
                            f"{h.BACK}")
     bot.register_next_step_handler(msg, change_debt, user)
 
@@ -344,13 +376,13 @@ def change_debt(_: types.Message, value: int, user: dict):
     _ = db.create_application(info)
     bot.send_message(ADMIN_ID,
                      f"Долг пользователя {h.get_user_full_name(**user)} был {action} на {abs(value):,}.\n"
-                     f"Его нынешний долг составляет {new_value:,}")
+                     f"Его нынешний долг составляет {new_value:,}.")
 
     info = {"debt": new_value}
     db.update_user(user['id'], info)
     bot.send_message(user['id'],
                      f"Ваш долг был {action} администратором на {abs(value):,}.\n"
-                     f"Новая сумма вашего долга составляет {new_value:,}")
+                     f"Новая сумма вашего долга составляет {new_value:,}.")
 
 
 @bot.message_handler(func=lambda message: message.text.startswith("/app_"))
@@ -416,7 +448,7 @@ def decline_application(application: dict):
 def remind_user(user: dict):
     send_remind(**user)
     bot.send_message(ADMIN_ID,
-                     "Напоминание было отправлено")
+                     "Напоминание было отправлено.")
 
 
 def send_remind(id: int, debt: int, **_):
@@ -469,12 +501,12 @@ def register_user(message: types.Message):
     }
     user = db.create_user(info)
     bot.send_message(ADMIN_ID,
-                     f"Новый пользователь Нурбанка: {h.get_user_full_name(**user)}"
+                     f"Новый пользователь Нурбанка: {h.get_user_full_name(**user)}."
                      f"Просмотр профиля: /profile_{message.from_user.id}")
 
 
 @bot.message_handler(content_types=["text"])
-def send_text(message: types.Message):
+def unknown_command(message: types.Message):
     bot.send_message(message.from_user.id,
                      h.WRONG_COMMAND)
 

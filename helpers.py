@@ -21,7 +21,7 @@ def cut_command(command: str) -> int:
 
 # MESSAGES
 WRONG_COMMAND = "Вы неправильно ввели команду."
-BACK = "Отмена - /back"
+BACK = "/back - отмена"
 
 
 # COMMANDS
@@ -39,9 +39,11 @@ USER_COMMANDS = '''
 # ADMIN
 ADMIN_COMMANDS = '''
 /profiles - пользователи
+/debtors - должники
 /applications - ожидающие заявки
-/remind - напомнить о долге
 /count - общая сумма в долгах
+/message - отправить сообщение
+/remind - разослать напоминания
 
 /commands - список команд
 '''

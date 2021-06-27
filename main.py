@@ -265,6 +265,43 @@ def show_all_profiles(*_):
                      profiles)
 
 
+@bot.message_handler(commands=["applications"])
+@admin_verification
+def show_pending_applications(*_):
+    users = db.get_all_users()
+    pending_applications = ""
+    for user in users:
+        for application in user['applications']:
+            if not application['answer_date']:
+                pending_applications += f"Заявитель: {h.get_user_full_name(**user)}\n"\
+                                        f"{h.get_application_info(**application)}\n" \
+                                        f"Одобрить:  /approve_{application['id']}\n" \
+                                        f"Отклонить: /decline_{application['id']}\n\n"
+    if not pending_applications:
+        pending_applications = "На данный момент в базе данных нет ожидающих заявок."
+    bot.send_message(ADMIN_ID,
+                     pending_applications)
+
+
+@bot.message_handler(commands=["remind"])
+@admin_verification
+def remind_all_users(*_):
+    for user in db.get_all_users():
+        send_remind(**user)
+    bot.send_message(ADMIN_ID,
+                     "Напоминания было отправлены")
+
+
+@bot.message_handler(commands=["count"])
+@admin_verification
+def count_debts(*_):
+    value = 0
+    for user in db.get_all_users():
+        value += user['debt']
+    bot.send_message(ADMIN_ID,
+                     f"Общая сумма в долгах: {value:,}.")
+
+
 @bot.message_handler(func=lambda message: message.text.startswith("/profile_"))
 @admin_verification
 @admin_user_id_check
@@ -336,24 +373,6 @@ def show_last_applications(user: dict):
                      f"{application_history}")
 
 
-@bot.message_handler(commands=["applications"])
-@admin_verification
-def show_pending_applications(*_):
-    users = db.get_all_users()
-    pending_applications = ""
-    for user in users:
-        for application in user['applications']:
-            if not application['answer_date']:
-                pending_applications += f"Заявитель: {h.get_user_full_name(**user)}\n"\
-                                        f"{h.get_application_info(**application)}\n" \
-                                        f"Одобрить:  /approve_{application['id']}\n" \
-                                        f"Отклонить: /decline_{application['id']}\n\n"
-    if not pending_applications:
-        pending_applications = "На данный момент в базе данных нет ожидающих заявок."
-    bot.send_message(ADMIN_ID,
-                     pending_applications)
-
-
 @bot.message_handler(func=lambda message: message.text.startswith("/approve_"))
 @admin_verification
 @admin_application_id_check
@@ -391,15 +410,6 @@ def decline_application(application: dict):
                      f"Ваш общий долг составляет {user['debt']:,}.")
 
 
-@bot.message_handler(commands=["remind"])
-@admin_verification
-def remind_all_users(*_):
-    for user in db.get_all_users():
-        send_remind(**user)
-    bot.send_message(ADMIN_ID,
-                     "Напоминания было отправлены")
-
-
 @bot.message_handler(func=lambda message: message.text.startswith("/remind_"))
 @admin_verification
 @admin_user_id_check
@@ -414,16 +424,6 @@ def send_remind(id: int, debt: int, **_):
         bot.send_message(id,
                          f"Напоминание о долге!\n"
                          f"Ваш общий долг состовляет {debt:,}.")
-
-
-@bot.message_handler(commands=["count"])
-@admin_verification
-def count_debts(*_):
-    value = 0
-    for user in db.get_all_users():
-        value += user['debt']
-    bot.send_message(ADMIN_ID,
-                     f"Общая сумма в долгах: {value:,}.")
 
 
 # COMMON

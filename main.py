@@ -251,21 +251,6 @@ def change_nickname(message: types.Message):
 # ADMIN
 
 
-@bot.message_handler(commands=["debtors"])
-@admin_verification
-def show_all_debtors(*_):
-    users = db.get_all_users()
-    debtors = ""
-    for user in users:
-        debtors += f"Имя: {h.get_user_full_name(**user)}\n"\
-                   f"Сумма: {user['debt']}\n" \
-                   f"Профиль: /profile_{user['id']}\n\n"
-    if not debtors:
-        debtors = "На данный момент должников нет."
-    bot.send_message(ADMIN_ID,
-                     debtors)
-
-
 @bot.message_handler(commands=["profiles"])
 @admin_verification
 def show_all_profiles(*_):
@@ -278,6 +263,22 @@ def show_all_profiles(*_):
         profiles = "На данный момент в базе данных нет пользователей."
     bot.send_message(ADMIN_ID,
                      profiles)
+
+
+@bot.message_handler(commands=["debtors"])
+@admin_verification
+def show_all_debtors(*_):
+    users = db.get_all_users()
+    debtors = ""
+    for user in users:
+        if user['debt']:
+            debtors += f"Имя: {h.get_user_full_name(**user)}\n"\
+                       f"Сумма: {user['debt']}\n" \
+                       f"Профиль: /profile_{user['id']}\n\n"
+    if not debtors:
+        debtors = "На данный момент должников нет."
+    bot.send_message(ADMIN_ID,
+                     debtors)
 
 
 @bot.message_handler(commands=["applications"])

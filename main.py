@@ -1,10 +1,12 @@
-from config import *
 from telebot import types
 import db_requests as db
 import helpers as h
+import os
 import telebot
 
 
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+ADMIN_ID = os.getenv("ADMIN_ID")
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 
 

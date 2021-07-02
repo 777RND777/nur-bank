@@ -6,7 +6,7 @@ import telebot
 
 
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-ADMIN_ID = os.getenv("ADMIN_ID")
+ADMIN_ID = int(os.getenv("ADMIN_ID"))
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 
 

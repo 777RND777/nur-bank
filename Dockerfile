@@ -1,8 +1,8 @@
 FROM python:3
 
 RUN apt-get update && apt-get upgrade -y && apt-get autoremove && apt-get autoclean
-ENV TELEGRAM_TOKEN = ""
-ENV ADMIN_ID = 0
+ENV TELEGRAM_TOKEN=""
+ENV ADMIN_ID=""
 
 RUN mkdir /nur-bank
 COPY . /nur-bank/

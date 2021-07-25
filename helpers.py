@@ -6,8 +6,8 @@ def get_user_full_name(first_name: str, nickname: str, last_name: str, **_) -> s
 
 
 def get_application_info(id: int, value: int, request_date: str, **_) -> str:
-    return f"ID: {id}\n"\
-           f"Сумма: {value:,}\n"\
+    return f"ID: {id}\n" \
+           f"Сумма: {value:,}\n" \
            f"Дата: {request_date}"
 
 
@@ -22,11 +22,6 @@ def cut_command(command: str) -> int:
 # MESSAGES
 WRONG_COMMAND = "Вы неправильно ввели команду."
 BACK = "/back - отмена"
-
-
-# COMMANDS
-
-# USER
 USER_COMMANDS = '''
 /loan - оставить заявку на долг
 /payment - уведомить об оплате долга
@@ -35,8 +30,6 @@ USER_COMMANDS = '''
 
 /commands - список команд
 '''
-
-# ADMIN
 ADMIN_COMMANDS = '''
 /profiles - пользователи
 /debtors - должники

@@ -4,7 +4,6 @@ from bank import docs
 from bank.models import User
 from bank.schemas import UserSchema
 
-
 users = Blueprint("users", __name__)
 
 

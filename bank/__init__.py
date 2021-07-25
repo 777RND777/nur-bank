@@ -7,7 +7,6 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 from .schemas import UserSchema
 
-
 app = Flask(__name__)
 app.config.update({
     "APISPEC_SPEC": APISpec(title="bank",
@@ -30,6 +29,7 @@ Base = declarative_base()
 Base.query = session.query_property()
 # importing here because of circular import error
 from .models import *
+
 Base.metadata.create_all(bind=engine)
 
 # place for future
@@ -37,6 +37,7 @@ Base.metadata.create_all(bind=engine)
 # importing here because of circular import error
 from .applications.views import applications
 from .users.views import users
+
 app.register_blueprint(applications)
 app.register_blueprint(users)
 

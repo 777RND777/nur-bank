@@ -4,7 +4,6 @@ from bank import docs
 from bank.models import Application
 from bank.schemas import ApplicationSchema
 
-
 applications = Blueprint("applications", __name__)
 
 

@@ -4,7 +4,6 @@ import helpers as h
 import os
 import telebot
 
-
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 ADMIN_ID = int(os.getenv("ADMIN_ID"))
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
@@ -20,6 +19,7 @@ def back_check(some_func):
                              "Операция была отменена.")
             return
         some_func(message, *args)
+
     return wrapper
 
 
@@ -33,6 +33,7 @@ def has_active_application(application_func):
                              f"Отмена заявки: /cancel")
             return
         application_func(message)
+
     return wrapper
 
 
@@ -45,6 +46,7 @@ def user_register_check(user_func):
             info = {"username": message.from_user.username}
             db.update_user(message.from_user.id, info)
         user_func(message)
+
     return wrapper
 
 
@@ -69,6 +71,7 @@ def user_validation_check(money_func):
                 bot.register_next_step_handler(msg, wrapper, is_loan)
                 return
         money_func(user_id, value, is_loan)
+
     return wrapper
 
 
@@ -78,6 +81,7 @@ def admin_verification(admin_func):
             unknown_command(message)
             return
         admin_func(message)
+
     return wrapper
 
 
@@ -114,6 +118,7 @@ def admin_validation_check(money_func):
             bot.register_next_step_handler(msg, wrapper, *args)
             return
         money_func(message.from_user.id, value, *args)
+
     return wrapper
 
 
@@ -126,6 +131,7 @@ def admin_user_id_check(user_func):
                              "Нет пользователя с таким ID.")
             return
         user_func(user)
+
     return wrapper
 
 
@@ -142,6 +148,7 @@ def admin_application_id_check(application_func):
                              "Вы уже ответили на данную заявку.")
             return
         application_func(application)
+
     return wrapper
 
 
@@ -259,7 +266,7 @@ def show_all_profiles(*_):
     users = db.get_all_users()
     profiles = ""
     for user in users:
-        profiles += f"Имя: {h.get_user_full_name(**user)}\n"\
+        profiles += f"Имя: {h.get_user_full_name(**user)}\n" \
                     f"Профиль: /profile_{user['id']}\n\n"
     if not profiles:
         profiles = "На данный момент в базе данных нет пользователей."
@@ -274,7 +281,7 @@ def show_all_debtors(*_):
     debtors = ""
     for user in users:
         if user['debt']:
-            debtors += f"Имя: {h.get_user_full_name(**user)}\n"\
+            debtors += f"Имя: {h.get_user_full_name(**user)}\n" \
                        f"Сумма: {user['debt']}\n" \
                        f"Профиль: /profile_{user['id']}\n\n"
     if not debtors:
@@ -291,7 +298,7 @@ def show_pending_applications(*_):
     for user in users:
         for application in user['applications']:
             if not application['answer_date']:
-                pending_applications += f"Заявитель: {h.get_user_full_name(**user)}\n"\
+                pending_applications += f"Заявитель: {h.get_user_full_name(**user)}\n" \
                                         f"{h.get_application_info(**application)}\n" \
                                         f"Одобрить:  /approve_{application['id']}\n" \
                                         f"Отклонить: /decline_{application['id']}\n\n"

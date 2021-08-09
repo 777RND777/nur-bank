@@ -28,7 +28,7 @@ def update_user(user_id: int, info: dict):
 
 
 def get_all_applications() -> dict:
-    c = client.get(f"/applications")
+    c = client.get("/applications")
     return c.get_json()
 
 

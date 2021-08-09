@@ -5,7 +5,6 @@ from flask_apispec.extension import FlaskApiSpec
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
-from .schemas import UserSchema
 
 app = Flask(__name__)
 app.config.update({
@@ -28,7 +27,6 @@ session = scoped_session(sessionmaker(autocommit=False,
 Base = declarative_base()
 Base.query = session.query_property()
 # importing here because of circular import error
-from .models import *
 
 Base.metadata.create_all(bind=engine)
 

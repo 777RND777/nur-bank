@@ -219,7 +219,7 @@ def cancel_application(message: types.Message):
         return
     db.remove_application(application['id'])
     bot.send_message(application['user_id'],
-                     f"Заявка была отменена.")
+                     "Заявка была отменена.")
 
 
 @bot.message_handler(commands=["debt"])
@@ -408,7 +408,7 @@ def show_last_applications(user: dict):
             application_history += f"{h.get_application_info(**application)}\n\n"
             count += 1
     if not application_history:
-        application_history = f"Пользователь не оставлял заявки."
+        application_history = "Пользователь не оставлял заявки."
 
     bot.send_message(ADMIN_ID,
                      f"Последние заявки {h.get_user_full_name(**user)}:\n"
@@ -425,7 +425,7 @@ def approve_application(application: dict):
     }
     db.update_application(application['id'], info)
     bot.send_message(ADMIN_ID,
-                     f"Вы одобрили заявку.")
+                     "Вы одобрили заявку.")
 
     user = db.get_user(application['user_id'])
     info = {"debt": user['debt'] + application['value']}
@@ -443,7 +443,7 @@ def decline_application(application: dict):
     info = {"answer_date": h.get_current_time()}
     db.update_application(application['id'], info)
     bot.send_message(ADMIN_ID,
-                     f"Вы отклонили заявку.")
+                     "Вы отклонили заявку.")
 
     user = db.get_user(application['user_id'])
     action = "получение" if application['value'] > 0 else "погашение"
@@ -475,7 +475,7 @@ def send_remind(id: int, debt: int, **_):
 def start_message(message: types.Message):
     if message.from_user.id == ADMIN_ID:
         bot.send_message(message.from_user.id,
-                         f"С возвращением, НурБанк!")
+                         "С возвращением, НурБанк!")
         show_commands(message)
         return
 
